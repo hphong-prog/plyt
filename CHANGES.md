@@ -1,6 +1,7 @@
-# Plyt Budget member alignment
+# Plyt mobile action reliability update
 
-- Budget participant selectors and balance rows now use the Plan roster (plan owner + travel-mates).
-- Existing legacy expense/payment participants are promoted once into the Plan travel-mate list so previous financial calculations are preserved rather than silently dropping old people/amounts. Their labels are normalized to the canonical plan-member name.
-- A member cannot be removed from the plan while existing expenses, custom splits, or settlements still refer to them. Reassign/edit/delete those Budget records first.
-- Applied to both `index.html` and `m.html`; Firebase schema, Personal Space and Join Plan flow are unchanged.
+- Replaced eager action-map evaluation with lazy per-action callbacks, so a missing helper for one control cannot disable every `data-act` control.
+- Added user-visible error feedback for synchronous and asynchronous action failures instead of silently doing nothing.
+- Clarified that the app stays locked behind the Personal Space gate until the user opens an existing space or creates a new one on that device.
+- Kept current desktop/mobile features, Personal Space, Join Plan, Budget member alignment, and Firebase Firestore integration.
+- No Firestore schema or security rules changes are required for this patch.

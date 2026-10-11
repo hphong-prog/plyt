@@ -17,3 +17,8 @@
 This does NOT use Firebase Authentication or Gmail login. The random access code is a bearer secret. Anyone who obtains it can access the corresponding personal space; the name is a consistency check, not the security boundary. Save the code in a password manager. If it is lost and no device remains logged in, there is no email-based recovery flow. Invite links have a separate share code and can be shared independently.
 
 The personal space is stored in one Firestore document with a 900,000-character application limit; shared plan content is referenced separately and remains in its existing share document. The app intentionally keeps Firestore collection listing disabled. Rules should not be opened with `allow read, write: if true`.
+
+
+## Lưu ý khi kiểm tra mobile
+
+Trên iPhone, localStorage riêng với desktop. Nếu cửa sổ **Your Plyt Space** vẫn đang mở, các nút phía sau được khóa có chủ ý. Hãy nhập tên + mã Personal Access Code hiện có rồi mở plans, hoặc tạo một space mới. Nếu kết nối bị từ chối, đọc thông báo trong cửa sổ đó và kiểm tra Firestore Rules/Firebase config.

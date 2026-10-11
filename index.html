@@ -1771,7 +1771,7 @@ function personalErrorText(e){const m=String(e&&e.message||e);if(m.includes('HTT
 function openPersonalGate(message){
  const sess=readSpaceSession();
  const importChoice=P.length?`<div class="space-import-choice"><label><input type="checkbox" id="spaceImportLocalPlans"> Import ${P.length} local plan${P.length===1?'':'s'} into this new space</label><p>Optional. Leave unchecked to start empty. Select this only if these browser-only plans belong to you and should be copied into your new space.</p></div>`:'';
- modal('Your Plyt space',`<p class="muted">Use your name and personal access code to open your plans on any device. New to Plyt? Enter your name, generate a new code, then save both somewhere private.</p>${message?`<p class="jmsg err" id="spacemsg">${esc(message)}</p>`:`<p class="jmsg" id="spacemsg" role="status"></p>`}${F('Your name',`<input id="spaceName" maxlength="40" placeholder="Enter your name" autocomplete="name" value="${esc(sess&&sess.name||'')}" aria-label="Your name">`)}<button type="button" class="mini gate-generate" data-act="generategatecode">Generate Your New Access Code</button>${F('Personal access code',`<div class="access-code-box"><input id="spaceCode" maxlength="24" placeholder="Enter saved code or generate one above" autocomplete="off" autocapitalize="characters" value="${esc(sess&&sess.code?prettyAccessCode(sess.code):'')}" aria-label="Personal access code"><button type="button" class="mini" data-act="copygatecode">Copy code</button></div>`)}<p class="muted gate-code-help" id="spacecodehelp">Already have a Plyt Space? Enter its saved code above and choose Open my plans. New here? Generate a code first.</p>${importChoice}<div class="access-actions"><button type="button" class="ghost" data-act="joinfromgate">Join a friend’s plan</button></div>`,{label:'Open my plans',nofocus:1,save:()=>{if($('#spaceCode')?.dataset.generatedCode){createPersonalSpaceFromGate();return false;}openExistingPersonalSpaceFromGate();return false;}});
+ modal('Your Plyt space',`<p class="muted">Use your name and personal access code to open your plans on any device. New to Plyt? Enter your name, generate a new code, then save both somewhere private. For privacy, the rest of the app stays locked until you open an existing Plyt Space or create a new one on this device.</p>${message?`<p class="jmsg err" id="spacemsg">${esc(message)}</p>`:`<p class="jmsg" id="spacemsg" role="status"></p>`}${F('Your name',`<input id="spaceName" maxlength="40" placeholder="Enter your name" autocomplete="name" value="${esc(sess&&sess.name||'')}" aria-label="Your name">`)}<button type="button" class="mini gate-generate" data-act="generategatecode">Generate Your New Access Code</button>${F('Personal access code',`<div class="access-code-box"><input id="spaceCode" maxlength="24" placeholder="Enter saved code or generate one above" autocomplete="off" autocapitalize="characters" value="${esc(sess&&sess.code?prettyAccessCode(sess.code):'')}" aria-label="Personal access code"><button type="button" class="mini" data-act="copygatecode">Copy code</button></div>`)}<p class="muted gate-code-help" id="spacecodehelp">Already have a Plyt Space? Enter its saved code above and choose Open my plans. New here? Generate a code first.</p>${importChoice}<div class="access-actions"><button type="button" class="ghost" data-act="joinfromgate">Join a friend’s plan</button></div>`,{label:'Open my plans',nofocus:1,save:()=>{if($('#spaceCode')?.dataset.generatedCode){createPersonalSpaceFromGate();return false;}openExistingPersonalSpaceFromGate();return false;}});
  $('#mbody').classList.add('personal-gate');
  const codeField=$('#spaceCode');if(codeField)codeField.addEventListener('input',()=>{delete codeField.dataset.generatedCode;const b=$('#msave');if(b)b.textContent='Open my plans';const h=$('#spacecodehelp');if(h)h.textContent='Already have a Plyt Space? Enter its saved code above and choose Open my plans. New here? Generate a code first.';});
 }
@@ -1808,6 +1808,24 @@ async function createPersonalSpaceFromGate(){
 
 async function activatePersonalSpace(code,data,rec){SPACE={active:false,code,uid:String(data.uid||makeSpaceUid()),name:String(data.name||''),base:rec.d,rev:rec.r,t:rec.t||'',busy:false,timer:0};await inflatePersonalSnapshot(data,code);SPACE.active=true;saveSpaceSession();}
 function showNewPersonalCode(code,name,migratedCount=0,afterSave=null){modal('Your personal access code',`<p class="muted">Save this code somewhere safe. On another device, enter both <b>${esc(name)}</b> and this code to open your plans. Anyone with this code can access your personal space. Plyt cannot recover it if you lose it.</p><div class="access-code-box"><input id="shownSpaceCode" readonly value="${esc(prettyAccessCode(code))}" aria-label="Your access code"><button type="button" class="mini" data-act="copyspacecode">Copy code</button></div><p class="muted">${migratedCount?`Imported ${migratedCount} existing plan${migratedCount===1?'':'s'} from this browser.`:'Your new personal space starts empty. Create your own plan or join a friend’s shared plan when you are ready.'} Shared plans continue to use their existing invite links.</p>${afterSave?'<p class="muted">After saving your access code, you will continue to review the shared plan and choose Join Plan.</p>':''}`,{label:afterSave?'I have saved my code — continue':'I have saved my code',nofocus:1,save:()=>{if(afterSave){closeM();render();afterSave();return false;}render();return true;}});}
+
+async function copyPersonalCode(){
+ const code=SPACE.code||((readSpaceSession()||{}).code)||'';
+ if(!code){toast('No personal access code is available');return;}
+ toast(await copyText(prettyAccessCode(code))?'Personal access code copied':'Could not copy the code');
+}
+async function switchPersonalSpace(){
+ if(SPACE.busy){toast('Personal-space sync is still running. Try again in a moment.');return;}
+ clearTimeout(SPACE.timer);
+ try{if(SPACE.active)await syncPersonalSpace();}
+ catch(e){toast('Could not sync before switching: '+(e.message||e));return;}
+ // Keep the old space in Firebase; clear only the active browser session and in-memory plan list.
+ SPACE={active:false,code:'',uid:'',name:'',base:'',rev:0,t:'',busy:false,timer:0};
+ clearSpaceSession();
+ P=[];H=[];KM=[];PME={};savePME();setMe('');
+ U.pid=null;U.xp=null;U.did=null;U.day=0;U.sel=0;U.hd=0;U.a=null;U.b=null;U.zoom=null;
+ save();closeM();render();openPersonalGate();
+}
 
 async function bootPersonalSpace(){const sess=readSpaceSession();if(sess&&sess.code){modal('Opening your plans','<p class="muted">Loading your personal space from Firebase…</p>',{nofocus:1});try{const rec=await personalGet(cleanAccessCode(sess.code));if(!rec)throw new Error('Personal space not found. Enter your name and access code again.');const data=JSON.parse(rec.d);await activatePersonalSpace(cleanAccessCode(sess.code),data,rec);closeM();render();if(personalSnapshot()!==SPACE.base)schedulePersonalSync();}catch(e){closeM();openPersonalGate(personalErrorText(e));}}else openPersonalGate(P.length?'This browser has local plans that are not linked to a personal access code yet. Create a new space here to migrate them.':'');}
 function bootApp(){const incoming=/^#(join|plan)=/.test(location.hash||'');const sess=readSpaceSession();if(sess&&sess.code){bootPersonalSpace().then(()=>{if(incoming){if($('#mbody').classList.contains('personal-gate'))closeM();handleHash();}});}else if(incoming){handleHash();}else openPersonalGate(P.length?'This browser has local plans that are not linked to a personal access code yet. Create a new space here to migrate them.':'');}
@@ -1938,7 +1956,72 @@ function delX(k,v){const p=cp(),d=cd();
  else if(k==='e'){const r=findExp(v);if(r)ask(`Delete \u201c${esc(r.e.t)}\u201d?`,()=>{r.p.bud.exp=r.p.bud.exp.filter(x=>x!==r.e);render()})}
  else if(k==='t'){const s=p.bud.set.find(x=>x.id===v);if(s)ask('Delete this payment record?',()=>{p.bud.set=p.bud.set.filter(x=>x!==s);render()})}
  else if(k==='s'){const r=findStop(v);if(r)ask(`Delete \u201c${esc(r.s.name)}\u201d?`,()=>{r.d.stops=r.d.stops.filter(x=>x!==r.s);U.sel=0;render()})}}
-function act(a,D){hideMenus();({plan:()=>openPlan({range:D.range}),editplan:()=>openPlan({pid:U.pid}),createspace:createPersonalSpaceFromGate,generategatecode:generateGateAccessCode,copygatecode:copyGateAccessCode,joinexistinguser:openJoinExistingSpace,joinnewuser:openJoinNewSpace,backjoinoptions:showJoinAccessOptions,generatejoincode:generateJoinSpaceCode,copyjoincode:copyJoinSpaceCode,moreplans:openMorePlans,joinfromgate:()=>{closeM();openJoin()},copyspacecode:copyPersonalCode,switchspace:switchPersonalSpace,personalaccess:()=>{closeM();openPersonalGate()},dest:()=>openDest(),editdest:()=>openDest({edit:1}),stop:()=>openStop({}),day:()=>openDay({}),editday:()=>openDay({edit:1}),flight:()=>openFlight({}),pack:openPack,me:openMe,shareplan:openSharePlan,cloud:openCloud,startshare:startShare,copylink:copyLink,nativeshare:nativeShare,syncnow:syncBtn,stopshare:stopShare,snap:snapShare,join:()=>openJoin(),testcloud:testCloud,maptoggle:()=>{U.mh=!U.mh;renderExplore()},expense:()=>openExpense({}),settle:()=>openSettle({}),bset:openBset,share:openBShare,mates:openMates,addmate:()=>{openMates();setTimeout(()=>{const i=$('#mnew2');if(i)i.focus()},40)}}[a]||(()=>{}))()}
+function act(a,D){
+ hideMenus();
+ // Lazily invoke each action. A missing helper for one action must never break all buttons.
+ const actions={
+  plan:()=>openPlan({range:D.range}),
+  editplan:()=>openPlan({pid:U.pid}),
+  createspace:()=>createPersonalSpaceFromGate(),
+  generategatecode:()=>generateGateAccessCode(),
+  copygatecode:()=>copyGateAccessCode(),
+  joinexistinguser:()=>openJoinExistingSpace(),
+  joinnewuser:()=>openJoinNewSpace(),
+  backjoinoptions:()=>showJoinAccessOptions(),
+  generatejoincode:()=>generateJoinSpaceCode(),
+  copyjoincode:()=>copyJoinSpaceCode(),
+  moreplans:()=>openMorePlans(),
+  joinfromgate:()=>{closeM();openJoin()},
+  copyspacecode:()=>copyPersonalCode(),
+  switchspace:()=>switchPersonalSpace(),
+  personalaccess:()=>{closeM();openPersonalGate()},
+  dest:()=>openDest(),
+  editdest:()=>openDest({edit:1}),
+  stop:()=>openStop({}),
+  day:()=>openDay({}),
+  editday:()=>openDay({edit:1}),
+  flight:()=>openFlight({}),
+  pack:()=>openPack(),
+  me:()=>openMe(),
+  shareplan:()=>openSharePlan(),
+  cloud:()=>openCloud(),
+  startshare:()=>startShare(),
+  copylink:()=>copyLink(),
+  nativeshare:()=>nativeShare(),
+  syncnow:()=>syncBtn(),
+  stopshare:()=>stopShare(),
+  snap:()=>snapShare(),
+  join:()=>openJoin(),
+  testcloud:()=>testCloud(),
+  maptoggle:()=>{U.mh=!U.mh;renderExplore()},
+  expense:()=>openExpense({}),
+  settle:()=>openSettle({}),
+  bset:()=>openBset(),
+  share:()=>openBShare(),
+  mates:()=>openMates(),
+  addmate:()=>{openMates();setTimeout(()=>{const i=$('#mnew2');if(i)i.focus()},40)}
+ };
+ const run=actions[a];
+ if(typeof run!=='function'){
+  console.warn('Unknown Plyt action:',a);
+  toast('This action is unavailable in this version. Reload Plyt and try again.');
+  return;
+ }
+ try{
+  const result=run();
+  if(result&&typeof result.then==='function')result.catch(err=>{
+   console.error('Plyt action failed:',a,err);
+   toast('Could not complete this action: '+String(err&&err.message||err));
+  });
+ }catch(err){
+  console.error('Plyt action failed:',a,err);
+  toast('Could not complete this action: '+String(err&&err.message||err));
+ }
+}
+window.addEventListener('unhandledrejection',e=>{
+ console.error('Unhandled Plyt action error:',e.reason);
+ toast('Something went wrong. Please retry; if it continues, reload Plyt.');
+});
 document.addEventListener('keydown',e=>{
  if(e.key==='Enter'||e.key===' '){
   const more=e.target.closest('[data-card-dests],[data-route-dests]');
