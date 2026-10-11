@@ -974,6 +974,37 @@ button.dest-pop-item{cursor:pointer}
 .access-code-box input{min-width:0;flex:1;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.04em}
 .access-code-box button{flex:0 0 auto}
 
+
+/* Personal-space UX: cleanly align the switch action and make local-plan migration explicit. */
+.panel.profilem .shsec [data-act="switchspace"]{
+  display:flex;width:100%;justify-content:flex-start;align-items:center;text-align:left;
+  margin:10px 0 0;padding:10px 12px;border-radius:12px;line-height:1.35;
+}
+.space-import-choice{margin-top:10px;padding:12px 13px;border-radius:14px;background:var(--bg);border:1px solid var(--line)}
+.space-import-choice label{display:flex;align-items:flex-start;gap:10px;color:var(--ink);font-size:13px;font-weight:700;line-height:1.4}
+.panel .space-import-choice input[type="checkbox"]{width:18px;height:18px;flex:0 0 18px;margin:1px 0 0;padding:0;accent-color:var(--pink)}
+.space-import-choice p{margin-top:8px;font-size:12px;line-height:1.45;color:var(--muted)}
+.panel.moreplansm .more-plan-list{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+.panel.moreplansm .more-plan-row{display:flex;align-items:center;gap:11px;width:100%;min-width:0;padding:12px;border-radius:14px;background:var(--bg);text-align:left}
+.panel.moreplansm .more-plan-row .cdot{width:12px;height:12px;flex:0 0 12px}
+.panel.moreplansm .more-plan-row .more-plan-copy{display:flex;flex:1;flex-direction:column;min-width:0;gap:3px}
+.panel.moreplansm .more-plan-row b{font-size:14px;line-height:1.25;overflow-wrap:anywhere}
+.panel.moreplansm .more-plan-row small{font-size:12px;color:var(--muted);line-height:1.35;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.panel.moreplansm .more-plan-row .more-plan-arrow{font-size:20px;color:var(--muted);flex:0 0 auto}
+@media(max-width:520px){
+  #home .plans{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:stretch;gap:10px;margin-top:12px}
+  #home .plans>*{min-width:0;max-width:100%}
+  #home .pwrap{width:100%;min-width:0;height:100%}
+  #home .pwrap .pcard{width:100%;max-width:100%;min-width:0;min-height:116px;height:100%;padding:30px 12px 12px;justify-content:flex-end;gap:3px;overflow:hidden}
+  #home .pwrap .pcard b{font-size:17px;line-height:1.2;white-space:nowrap;min-width:0;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+  #home .pcard span,#home .pcard small{min-width:0;max-width:100%;overflow:hidden;text-overflow:ellipsis;overflow-wrap:anywhere}
+  #home .pedit{top:8px;right:8px}
+  #home .pcard.more-plans{display:flex;align-items:center;justify-content:center;text-align:center;gap:6px;background:var(--surface)!important;color:var(--ink)!important;border:1px dashed var(--pink)!important;padding:12px}
+  #home .pcard.more-plans .more-count{display:grid;place-items:center;width:38px;height:38px;flex:0 0 38px;border-radius:50%;background:var(--pink);color:var(--navy);font:800 16px 'Bricolage Grotesque',sans-serif}
+  #home .pcard.more-plans b{font-size:14px}
+  #home .pcard.more-plans small{font-size:11px;color:var(--muted);font-weight:500}
+}
+
 </style>
 </head>
 <body>
@@ -1285,6 +1316,7 @@ function renderEmptyApp(){
  $('#plans').innerHTML='<div class="empty-plans">Your plans will appear here after you create or join one.</div>';
  $('#hsum').innerHTML='';
 }
+function openMorePlans(){const hidden=SP().slice(2);if(!hidden.length)return;modal('More plans',`<p class="muted">Choose a plan to open.</p><div class="more-plan-list">${hidden.map(p=>`<button type="button" class="more-plan-row" data-morepid="${esc(p.id)}"><i class="cdot" style="background:${p.color}"></i><span class="more-plan-copy"><b>${esc(p.name)}</b><small>${fm(p.start)} – ${fm(p.end)} · ${(p.dests||[]).map(d=>d.name).join(' → ')}</small></span><i class="more-plan-arrow">›</i></button>`).join('')}</div>`,{nofocus:1});$('#mbody').classList.add('moreplansm');}
 function renderHome(){
  $('#meName').textContent=ME;$('#avt').textContent=ME.charAt(0).toUpperCase();const m2=$('#meAv2');if(m2){m2.textContent=ME.charAt(0).toUpperCase();$('#meNm2').textContent=ME}
  const p=cp(),hd=p.dests[Math.min(U.hd,p.dests.length-1)],all=allStops(p),dn=all.filter(s=>s.done).length;
@@ -1294,7 +1326,9 @@ function renderHome(){
  $('#hNext').textContent=de0<0?`Ended ${-de0} day${de0===-1?'':'s'} ago`:ds0<=0?`Trip in progress \u00b7 day ${1-ds0} of ${diff(p.start,p.end)+1}`:ds0===1?'Trip starts tomorrow':`${nu&&nu.id===p.id?'Next trip':'Trip'} in ${ds0} days`;
  $('#hero').innerHTML=`<svg viewBox="0 0 380 230" preserveAspectRatio="xMidYMid slice" aria-hidden="true">${sceneX(hd.sc)}</svg><div class="hbar${p.dests.length>3?' has-dest-count':''}"><div class="hn"><button data-hp="-1" aria-label="Previous plan">\u2039</button><span>${pi+1} / ${sp.length}</span><button data-hp="1" aria-label="Next plan">\u203a</button></div><div class="hd">${heroDestControls}</div></div><div class="hp"><h1>${esc(p.name)}</h1><p class="hero-route">${fm(p.start)} \u2013 ${fm(p.end)} \u00b7 ${heroRoute}</p>${p.sync?`<p class="syncp">${IC.cloud} ${esc(syncLabel(p))}</p>`:''}<div class="meter"><i style="width:${all.length?dn/all.length*100:0}%"></i></div><small>${dn} of ${all.length} stops done</small><br><button class="btn" data-go="plan">Open plan</button></div>`;
  $('#pills').innerHTML=`<button class="pill" data-act="stop">${IC.plus} Add stop</button><button class="pill" data-act="flight">${IC.plane} Flights</button><button class="pill" data-act="pack">${IC.bag} Packing</button><button class="pill" data-act="expense">${IC.wallet} Budget</button><button class="pill" data-act="shareplan">${IC.share} Share plan</button>`;
- $('#plans').innerHTML=SP().map(x=>`<div class="pwrap"><button class="pcard${x.id===U.pid?' on':''}" data-pid="${x.id}" style="background:${x.color};color:${ink(x.color)}"><b>${esc(x.name)}</b><span>${fm(x.start)} \u2013 ${fm(x.end)}</span>${cardDestinationSummary(x)}</button><button class="ico pedit" data-openp="${x.id}" aria-label="Open ${esc(x.name)} in the Plan page to edit" title="Open in Plan page to edit">${IC.edit}</button></div>`).join('')+`<button class="pcard add" data-act="plan">${IC.plus}<b>New plan</b></button>`}
+ const homePlans=SP(),visiblePlans=homePlans.slice(0,2),hiddenPlans=homePlans.slice(2);
+ const planCard=x=>`<div class="pwrap"><button class="pcard${x.id===U.pid?' on':''}" data-pid="${x.id}" style="background:${x.color};color:${ink(x.color)}"><b>${esc(x.name)}</b><span>${fm(x.start)} – ${fm(x.end)}</span>${cardDestinationSummary(x)}</button><button class="ico pedit" data-openp="${x.id}" aria-label="Open ${esc(x.name)} in the Plan page to edit" title="Open in Plan page to edit">${IC.edit}</button></div>`;
+ $('#plans').innerHTML=visiblePlans.map(planCard).join('')+(hiddenPlans.length?`<button class="pcard more-plans" type="button" data-act="moreplans" aria-label="Show ${hiddenPlans.length} more plans"><span class="more-count">+${hiddenPlans.length}</span><b>More plans</b><small>Tap to choose</small></button>`:`<button class="pcard add" data-act="plan">${IC.plus}<b>New plan</b></button>`);}
 
 function setupSummaryOverflow(){
  const chips=$$('.dchips');
@@ -1608,13 +1642,47 @@ async function syncPersonalSpace(){if(!SPACE.active||!cloudOn()||SPACE.busy)retu
  if(!ok)throw new Error('Your plans changed on another device at the same time. Please wait a moment and retry.');
  }finally{SPACE.busy=false;}if(ok&&SPACE.active&&personalSnapshot()!==SPACE.base)schedulePersonalSync();}
 function personalErrorText(e){const m=String(e&&e.message||e);if(m.includes('HTTP 403'))return 'Firebase denied access. Publish the updated firestore.rules that includes /personalSpaces before using personal access codes.';if(m.includes('HTTP 404'))return 'Personal space not found. Check both your name and access code.';return m;}
-function openPersonalGate(message){const sess=readSpaceSession();modal('Your Plyt space',`<p class="muted">Enter your name and personal access code to open your plans on any device. New here? Create a personal space and Plyt will generate a unique code for you.</p>${message?`<p class="jmsg err" id="spacemsg">${esc(message)}</p>`:`<p class="jmsg" id="spacemsg" role="status"></p>`}${F('Your name',`<input id="spaceName" maxlength=40 placeholder="Enter your name" autocomplete="name" value="${esc(sess&&sess.name||'')}" aria-label="Your name">`)}${F('Personal access code',`<input id="spaceCode" maxlength=24 placeholder="XXXX-XXXX-XXXX-XXXX-XXXX" autocomplete="off" autocapitalize="characters" value="${esc(sess&&sess.code?prettyAccessCode(sess.code):'')}" aria-label="Personal access code">`)}<div class="access-actions"><button type="button" class="mini" data-act="createspace">Create new personal space</button><button type="button" class="ghost" data-act="joinfromgate">Join a friend’s plan</button></div>${P.length?'<p class="muted">Plans currently saved in this browser can be uploaded when you create a new personal space. Sign in to an existing space to replace this local view with its cloud plans.</p>':''}`,{label:'Open my plans',nofocus:1,save:()=>{openExistingPersonalSpaceFromGate();return false;}});$('#mbody').classList.add('personal-gate');}
+function openPersonalGate(message){const sess=readSpaceSession();modal('Your Plyt space',`<p class="muted">Enter your name and personal access code to open your plans on any device. New here? Create a personal space and Plyt will generate a unique code for you.</p>${message?`<p class="jmsg err" id="spacemsg">${esc(message)}</p>`:`<p class="jmsg" id="spacemsg" role="status"></p>`}${F('Your name',`<input id="spaceName" maxlength=40 placeholder="Enter your name" autocomplete="name" value="${esc(sess&&sess.name||'')}" aria-label="Your name">`)}${F('Personal access code',`<input id="spaceCode" maxlength=24 placeholder="XXXX-XXXX-XXXX-XXXX-XXXX" autocomplete="off" autocapitalize="characters" value="${esc(sess&&sess.code?prettyAccessCode(sess.code):'')}" aria-label="Personal access code">`)}<div class="access-actions"><button type="button" class="mini" data-act="createspace">Create new personal space</button><button type="button" class="ghost" data-act="joinfromgate">Join a friend’s plan</button></div>${P.length?`<div class="space-import-choice"><label><input type="checkbox" id="spaceImportLocalPlans"> Import ${P.length} local plan${P.length===1?'':'s'} into this new space</label><p>Optional. Leave unchecked to start empty. Select this only if the plans currently saved in this browser belong to you and should be copied into this new space.</p></div>`:''}`,{label:'Open my plans',nofocus:1,save:()=>{openExistingPersonalSpaceFromGate();return false;}});$('#mbody').classList.add('personal-gate');}
 async function openExistingPersonalSpaceFromGate(){const name=$('#spaceName').value.trim(),code=cleanAccessCode($('#spaceCode').value),msg=$('#spacemsg'),btn=$('#msave');if(!name||name.length>40){msg.textContent='Enter your name (up to 40 characters).';msg.className='jmsg err';return;}if(!/^[A-HJ-NP-Z2-9]{20}$/.test(code)){msg.textContent='Enter the full 20-character access code.';msg.className='jmsg err';return;}btn.disabled=true;msg.textContent='Checking your personal space…';msg.className='jmsg';try{const rec=await personalGet(code);if(!rec){msg.textContent='Name or access code is incorrect. Check both and try again.';msg.className='jmsg err';return;}const data=JSON.parse(rec.d);if(spaceNameKey(name)!==spaceNameKey(data.name)){msg.textContent='Name or access code is incorrect. Check both and try again.';msg.className='jmsg err';return;}await activatePersonalSpace(code,data,rec);closeM();render();toast('Welcome back, '+data.name);if(personalSnapshot()!==SPACE.base)schedulePersonalSync();}catch(e){msg.textContent=personalErrorText(e);msg.className='jmsg err';}finally{if($('#msave'))$('#msave').disabled=false;}}
-async function createPersonalSpaceFromGate(){const name=$('#spaceName').value.trim();const msg=$('#spacemsg');if(!name||name.length>40){msg.textContent='Enter your name (up to 40 characters) before creating your space.';msg.className='jmsg err';$('#spaceName').focus();return;}if(!cloudOn()){msg.textContent='Firebase is not configured on this app. Open Cloud sync settings first.';msg.className='jmsg err';return;}const button=$$('#mbody [data-act=createspace]')[0];if(button)button.disabled=true;msg.textContent='Generating your access code and saving your plans…';msg.className='jmsg';const oldME=ME;try{setMe(name);P.forEach(p=>{if(!p.owner)p.owner=name});let made=null;for(let tries=0;tries<3;tries++){const code=makeAccessCode(),d=personalSnapshot(name);const res=await personalPut(code,d,1,'currentDocument.exists=false');if(res.conflict)continue;made={code,d,res};break;}if(!made)throw new Error('Could not generate a unique access code. Please retry.');SPACE={active:true,code:made.code,name,base:made.d,rev:1,t:made.res.t||'',busy:false,timer:0};saveSpaceSession();closeM();save();render();showNewPersonalCode(made.code,name);}catch(e){setMe(oldME);msg.textContent=personalErrorText(e);msg.className='jmsg err';}finally{if(button&&button.isConnected)button.disabled=false;}}
+async function createPersonalSpaceFromGate(){
+ const name=$('#spaceName').value.trim(),msg=$('#spacemsg');
+ if(!name||name.length>40){msg.textContent='Enter your name (up to 40 characters) before creating your space.';msg.className='jmsg err';$('#spaceName').focus();return;}
+ if(!cloudOn()){msg.textContent='Firebase is not configured on this app. Open Cloud sync settings first.';msg.className='jmsg err';return;}
+ const migrate=!!$('#spaceImportLocalPlans')?.checked;
+ const previous={P,H,KM,ME,PME,U:{...U},owners:P.map(p=>p.owner)};
+ const button=$$('#mbody [data-act=createspace]')[0];if(button)button.disabled=true;
+ msg.textContent=migrate?'Creating your personal space and importing local plans…':'Creating an empty personal space…';msg.className='jmsg';
+ try{
+  if(!migrate){P=[];H=[];KM=[];PME={};savePME();U.pid=null;U.xp=null;U.did=null;U.day=0;U.sel=0;U.hd=0;U.a=null;U.b=null;}
+  setMe(name);
+  if(migrate)P.forEach(p=>{if(!p.owner)p.owner=name});
+  let made=null;
+  for(let tries=0;tries<3;tries++){
+   const code=makeAccessCode(),d=personalSnapshot(name);
+   const res=await personalPut(code,d,1,'currentDocument.exists=false');
+   if(res.conflict)continue;made={code,d,res};break;
+  }
+  if(!made)throw new Error('Could not generate a unique access code. Please retry.');
+  SPACE={active:true,code:made.code,name,base:made.d,rev:1,t:made.res.t||'',busy:false,timer:0};
+  saveSpaceSession();closeM();save();render();showNewPersonalCode(made.code,name,migrate?previous.P.length:0);
+ }catch(e){
+  P=previous.P;H=previous.H;KM=previous.KM;PME=previous.PME;previous.P.forEach((p,i)=>{p.owner=previous.owners[i]});Object.assign(U,previous.U);setMe(previous.ME);savePME();save();
+  msg.textContent=personalErrorText(e);msg.className='jmsg err';render();
+ }finally{if(button&&button.isConnected)button.disabled=false;}
+}
 async function activatePersonalSpace(code,data,rec){SPACE={active:false,code,name:String(data.name||''),base:rec.d,rev:rec.r,t:rec.t||'',busy:false,timer:0};await inflatePersonalSnapshot(data,code);SPACE.active=true;saveSpaceSession();}
-function showNewPersonalCode(code,name){modal('Your personal access code',`<p class="muted">Save this code somewhere safe. On another device, enter both <b>${esc(name)}</b> and this code to open your plans. Anyone with this code can access your personal space. Plyt cannot recover it if you lose it.</p><div class="access-code-box"><input id="shownSpaceCode" readonly value="${esc(prettyAccessCode(code))}" aria-label="Your access code"><button type="button" class="mini" data-act="copyspacecode">Copy code</button></div><p class="muted">Your existing plans in this browser have been added to this personal space. Shared plans continue to use their existing invite links.</p>`,{label:'I have saved my code',nofocus:1,save:()=>{render();return true;}});}
+function showNewPersonalCode(code,name,migratedCount=0){modal('Your personal access code',`<p class="muted">Save this code somewhere safe. On another device, enter both <b>${esc(name)}</b> and this code to open your plans. Anyone with this code can access your personal space. Plyt cannot recover it if you lose it.</p><div class="access-code-box"><input id="shownSpaceCode" readonly value="${esc(prettyAccessCode(code))}" aria-label="Your access code"><button type="button" class="mini" data-act="copyspacecode">Copy code</button></div><p class="muted">${migratedCount?`Imported ${migratedCount} existing plan${migratedCount===1?'':'s'} from this browser.`:'Your new personal space starts empty. Create your own plan or join a friend’s shared plan when you are ready.'} Shared plans continue to use their existing invite links.</p>`,{label:'I have saved my code',nofocus:1,save:()=>{render();return true;}});}
 async function copyPersonalCode(){const code=SPACE.code||((readSpaceSession()||{}).code)||'';if(!code){toast('No personal access code is available');return;}toast(await copyText(prettyAccessCode(code))?'Personal access code copied':'Could not copy the code');}
-async function switchPersonalSpace(){if(SPACE.busy){toast('Personal-space sync is still running. Try again in a moment.');return;}clearTimeout(SPACE.timer);try{if(SPACE.active)await syncPersonalSpace();}catch(e){toast('Could not sync before switching: '+(e.message||e));return;}SPACE={active:false,code:'',name:'',base:'',rev:0,t:'',busy:false,timer:0};clearSpaceSession();closeM();openPersonalGate();}
+async function switchPersonalSpace(){
+ if(SPACE.busy){toast('Personal-space sync is still running. Try again in a moment.');return;}
+ clearTimeout(SPACE.timer);
+ try{if(SPACE.active)await syncPersonalSpace();}catch(e){toast('Could not sync before switching: '+(e.message||e));return;}
+ // The old space has been synced to Firestore. Clear only the active browser view; do not delete cloud documents.
+ SPACE={active:false,code:'',name:'',base:'',rev:0,t:'',busy:false,timer:0};clearSpaceSession();
+ P=[];H=[];KM=[];PME={};savePME();setMe('');
+ U.pid=null;U.xp=null;U.did=null;U.day=0;U.sel=0;U.hd=0;U.a=null;U.b=null;U.zoom=null;
+ save();closeM();render();openPersonalGate();
+}
 async function bootPersonalSpace(){const sess=readSpaceSession();if(sess&&sess.code){modal('Opening your plans','<p class="muted">Loading your personal space from Firebase…</p>',{nofocus:1});try{const rec=await personalGet(cleanAccessCode(sess.code));if(!rec)throw new Error('Personal space not found. Enter your name and access code again.');const data=JSON.parse(rec.d);await activatePersonalSpace(cleanAccessCode(sess.code),data,rec);closeM();render();if(personalSnapshot()!==SPACE.base)schedulePersonalSync();}catch(e){closeM();openPersonalGate(personalErrorText(e));}}else openPersonalGate(P.length?'This browser has local plans that are not linked to a personal access code yet. Create a new space here to migrate them.':'');}
 function bootApp(){const incoming=/^#(join|plan)=/.test(location.hash||'');const sess=readSpaceSession();if(sess&&sess.code){bootPersonalSpace().then(()=>{if(incoming){if($('#mbody').classList.contains('personal-gate'))closeM();handleHash();}});}else if(incoming){handleHash();}else openPersonalGate(P.length?'This browser has local plans that are not linked to a personal access code yet. Create a new space here to migrate them.':'');}
 
@@ -1648,7 +1716,7 @@ const ub64=t=>{t=t.replace(/-/g,'+').replace(/_/g,'/');while(t.length%4)t+='=';c
 async function enc(o){const raw=new TextEncoder().encode(JSON.stringify(o));try{const cs=new CompressionStream('deflate-raw'),w=cs.writable.getWriter();w.write(raw);w.close();return'z'+b64u(new Uint8Array(await new Response(cs.readable).arrayBuffer()))}catch(e){return'p'+b64u(raw)}}
 async function dec(t){const u=ub64(t.slice(1));if(t[0]==='z'){const ds=new DecompressionStream('deflate-raw'),w=ds.writable.getWriter();w.write(u);w.close();return JSON.parse(await new Response(ds.readable).text())}return JSON.parse(new TextDecoder().decode(u))}
 async function copyText(t,el){try{await navigator.clipboard.writeText(t);return true}catch(e){}try{const x=el||document.body.appendChild(Object.assign(document.createElement('textarea'),{value:t}));x.select();const ok=document.execCommand('copy');if(!el)x.remove();return ok}catch(e){return false}}
-function openMe(){const access=SPACE.active?`<div class="shsec"><span class="bl">Personal access code</span><div class="access-code-box"><input readonly value="${esc(prettyAccessCode(SPACE.code))}" aria-label="Personal access code"><button type="button" class="mini" data-act="copyspacecode">Copy</button></div><p class="muted">Use this code with your name to open your personal plans on another device.</p><button type="button" class="ghost" data-act="switchspace">Switch user / personal space</button></div>`:`<div class="shsec"><span class="bl">Personal plans</span><p class="muted">Link your plans to a personal access code so they appear on your other devices.</p><button type="button" class="mini" data-act="personalaccess">Open personal space</button></div>`;modal('Your name',`<p class="muted">Shown in your greeting and used as “you” in budgets. Friends who join a shared plan choose their own name.</p>`+F('Name',`<input id="mn" value="${esc(ME)}" aria-label="Your name">`)+access,{label:'Save',save:()=>{const v=$('#mn').value.trim();if(!v){bad('#mn');return false}if(v.length>40){bad('#mn');return false}if(v!==ME){const o=ME;P.forEach(pl=>{if(pl.owner===o)pl.owner=v});renameMate(o,v);KM=KM.map(x=>x===o?v:x);setMe(v);Object.keys(PME).forEach(k=>{if(PME[k]===o)PME[k]=v});savePME();if(SPACE.active){SPACE.name=v;saveSpaceSession()}}render();return true}})}
+function openMe(){const access=SPACE.active?`<div class="shsec"><span class="bl">Personal access code</span><div class="access-code-box"><input readonly value="${esc(prettyAccessCode(SPACE.code))}" aria-label="Personal access code"><button type="button" class="mini" data-act="copyspacecode">Copy</button></div><p class="muted">Use this code with your name to open your personal plans on another device.</p><button type="button" class="ghost" data-act="switchspace">Switch user / personal space</button></div>`:`<div class="shsec"><span class="bl">Personal plans</span><p class="muted">Link your plans to a personal access code so they appear on your other devices.</p><button type="button" class="mini" data-act="personalaccess">Open personal space</button></div>`;modal('Your name',`<p class="muted">Shown in your greeting and used as “you” in budgets. Friends who join a shared plan choose their own name.</p>`+F('Name',`<input id="mn" value="${esc(ME)}" aria-label="Your name">`)+access,{label:'Save',save:()=>{const v=$('#mn').value.trim();if(!v){bad('#mn');return false}if(v.length>40){bad('#mn');return false}if(v!==ME){const o=ME;P.forEach(pl=>{if(pl.owner===o)pl.owner=v});renameMate(o,v);KM=KM.map(x=>x===o?v:x);setMe(v);Object.keys(PME).forEach(k=>{if(PME[k]===o)PME[k]=v});savePME();if(SPACE.active){SPACE.name=v;saveSpaceSession()}}render();return true}});$('#mbody').classList.add('profilem')}
 function openSharePlan(){
  const p=cp(),s=p.sync,link=s?inviteLink(p):'';let live;
  if(!cloudOn())live=`<p class="muted">Live sync keeps this plan identical on every friend's phone. It needs a free cloud database that you set up once.</p><button class="mini" data-act="cloud">${IC.cloud} Set up cloud sync</button>`;
@@ -1753,7 +1821,7 @@ function delX(k,v){const p=cp(),d=cd();
  else if(k==='e'){const r=findExp(v);if(r)ask(`Delete \u201c${esc(r.e.t)}\u201d?`,()=>{r.p.bud.exp=r.p.bud.exp.filter(x=>x!==r.e);render()})}
  else if(k==='t'){const s=p.bud.set.find(x=>x.id===v);if(s)ask('Delete this payment record?',()=>{p.bud.set=p.bud.set.filter(x=>x!==s);render()})}
  else if(k==='s'){const r=findStop(v);if(r)ask(`Delete \u201c${esc(r.s.name)}\u201d?`,()=>{r.d.stops=r.d.stops.filter(x=>x!==r.s);U.sel=0;render()})}}
-function act(a,D){hideMenus();({plan:()=>openPlan({range:D.range}),editplan:()=>openPlan({pid:U.pid}),createspace:createPersonalSpaceFromGate,joinfromgate:()=>{closeM();openJoin()},copyspacecode:copyPersonalCode,switchspace:switchPersonalSpace,personalaccess:()=>{closeM();openPersonalGate()},dest:()=>openDest(),editdest:()=>openDest({edit:1}),stop:()=>openStop({}),day:()=>openDay({}),editday:()=>openDay({edit:1}),flight:()=>openFlight({}),pack:openPack,me:openMe,shareplan:openSharePlan,cloud:openCloud,startshare:startShare,copylink:copyLink,nativeshare:nativeShare,syncnow:syncBtn,stopshare:stopShare,snap:snapShare,join:()=>openJoin(),testcloud:testCloud,maptoggle:()=>{U.mh=!U.mh;renderExplore()},expense:()=>openExpense({}),settle:()=>openSettle({}),bset:openBset,share:openBShare,mates:openMates,addmate:()=>{openMates();setTimeout(()=>{const i=$('#mnew2');if(i)i.focus()},40)}}[a]||(()=>{}))()}
+function act(a,D){hideMenus();({plan:()=>openPlan({range:D.range}),editplan:()=>openPlan({pid:U.pid}),createspace:createPersonalSpaceFromGate,moreplans:openMorePlans,joinfromgate:()=>{closeM();openJoin()},copyspacecode:copyPersonalCode,switchspace:switchPersonalSpace,personalaccess:()=>{closeM();openPersonalGate()},dest:()=>openDest(),editdest:()=>openDest({edit:1}),stop:()=>openStop({}),day:()=>openDay({}),editday:()=>openDay({edit:1}),flight:()=>openFlight({}),pack:openPack,me:openMe,shareplan:openSharePlan,cloud:openCloud,startshare:startShare,copylink:copyLink,nativeshare:nativeShare,syncnow:syncBtn,stopshare:stopShare,snap:snapShare,join:()=>openJoin(),testcloud:testCloud,maptoggle:()=>{U.mh=!U.mh;renderExplore()},expense:()=>openExpense({}),settle:()=>openSettle({}),bset:openBset,share:openBShare,mates:openMates,addmate:()=>{openMates();setTimeout(()=>{const i=$('#mnew2');if(i)i.focus()},40)}}[a]||(()=>{}))()}
 document.addEventListener('keydown',e=>{
  if(e.key==='Enter'||e.key===' '){
   const more=e.target.closest('[data-card-dests],[data-route-dests]');
@@ -1789,6 +1857,7 @@ document.addEventListener('click',e=>{
  if(D.close!==undefined){if($('#mbody').classList.contains('personal-gate'))return;closeM();return}
  if(el.id==='msave'){if(!M.save||M.save()!==false)closeM();return}
  if(el.id==='mdel'){M.del&&M.del();return}
+ if(D.morepid){const id=D.morepid;closeM();U.pid=id;U.did=null;U.day=0;U.sel=0;U.hd=0;U.xp=id;go('home');return}
  if(D.act){act(D.act,D);return}
  if(D.openp){hideMenus();U.pid=D.openp;U.did=null;U.day=0;U.sel=0;U.hd=0;go('plan');return}
  if(D.editp){hideMenus();openPlan({pid:D.editp});return}

@@ -1,8 +1,7 @@
-# Plyt — Home destination interaction update
+# Plyt update — Personal Space isolation and mobile Home overflow
 
-- Desktop Home: moved the circular scenery count next to the plan pager when a plan has more than three destinations.
-- Clicking the circular count opens a horizontally arranged scenery picker on desktop.
-- Home hero route `+N` and plan-card `+N` show remaining destinations on hover for mouse/trackpad devices.
-- On touch devices, `+N` remains tap-to-open. `+N` no longer opens the scenery selector; only the circular count does that.
-- Preserved Personal Space, Firebase sync and Firestore Rules.
-- Checked inline JavaScript syntax in desktop and mobile HTML. Firebase behaviour still requires testing against the deployed project.
+- Switching users syncs the current Personal Space first, then clears the active local view without deleting cloud data.
+- Creating a new Personal Space starts empty by default. Importing local plans is an explicit, unchecked-by-default option shown only when local plans exist.
+- The profile modal's “Switch user / personal space” action is left-aligned and vertically spaced consistently.
+- Mobile Home shows at most two plan cards plus a `+N` overflow card; tapping it opens a chooser for remaining plans. The existing top `+` button remains the way to create a plan.
+- Firebase collection layout and shared-plan invite behavior are unchanged.
