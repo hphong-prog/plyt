@@ -1,14 +1,16 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Plyt uses an unguessable share code as the capability in an invite link.
-    // This intentionally allows unauthenticated access ONLY to a single share
-    // document path under /shares; do not add a blanket allow rule elsewhere.
     function validShareCode(code) {
       return code.matches('^[a-z0-9]{12,32}$');
     }
 
-    function validShareDocument() {
+    function validPersonalCode(code) {
+      // 20 characters from a cryptographically random Base32 alphabet (100 bits).
+      return code.matches('^[A-HJ-NP-Z2-9]{20}$');
+    }
+
+    function validPayload() {
       return request.resource.data.keys().hasAll(['d', 'r', 'u'])
         && request.resource.data.keys().hasOnly(['d', 'r', 'u'])
         && request.resource.data.d is string
@@ -18,11 +20,19 @@ service cloud.firestore {
     }
 
     match /shares/{shareCode} {
-      // The app's connection check reads this fixed, non-existent test ID.
+      // Invite links act as bearer capabilities for one plan only.
       allow get: if validShareCode(shareCode)
         || shareCode == 'connection-test-0000';
       allow create, update: if validShareCode(shareCode)
-        && validShareDocument();
+        && validPayload();
+    }
+
+    match /personalSpaces/{accessCode} {
+      // The access code is a private, high-entropy capability. Never share it.
+      // No collection listing or deletion is allowed.
+      allow get: if validPersonalCode(accessCode);
+      allow create, update: if validPersonalCode(accessCode)
+        && validPayload();
     }
   }
 }

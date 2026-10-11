@@ -273,7 +273,11 @@ button.cd:hover{transform:scale(1.12);filter:brightness(1.08);z-index:1}
 .panel input,.panel select,.panel textarea{width:100%;padding:11px 14px;border-radius:14px;border:1px solid transparent;background:var(--bg);color:var(--ink);font:inherit;margin-top:0;transition:border-color .15s,box-shadow .15s}
 .panel input:hover,.panel select:hover,.panel textarea:hover,.rte:hover{border-color:var(--pink)}
 .panel input:focus,.panel select:focus,.panel textarea:focus,.rte:focus{outline:none;border-color:var(--pink);box-shadow:0 0 0 3px rgba(255,120,167,.25)}
-.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px}
+.dest-date-fields{grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr)}
+.dest-date-fields>.f{min-width:0}
+.dest-date-fields input{display:block;width:100%;min-width:0;max-width:100%;padding-left:8px;padding-right:8px;font-size:14px}
+@media(max-width:360px){.dest-date-fields{grid-template-columns:minmax(0,1fr)}}
 .sws{display:flex;gap:8px;flex-wrap:wrap}
 .swb{width:30px;height:30px;border-radius:50%;border:2px solid transparent;transition:transform .15s}
 .swb.on{border-color:var(--ink);box-shadow:0 0 0 2px var(--pink)}
@@ -922,6 +926,54 @@ a.mini{text-decoration:none}
 .btn[aria-disabled="true"]{opacity:.5;box-shadow:none}
 .btn[aria-disabled="true"]:hover{transform:none;box-shadow:none}
 .panel.joinm .mfoot{position:sticky;bottom:0;background:var(--surface);padding:12px 0 2px;margin-top:10px;z-index:2}
+
+
+/* Mobile Plan UX: keep configured option chips clean; deletion remains available
+   from the relevant edit dialogs. This override is scoped to Plan only. */
+@media (hover:none){
+  #plan .xdel{display:none !important;}
+}
+
+/* Home destination overflow: compact count control and non-expanding plan-card route */
+.hero .hd .hd-count{width:34px;height:34px;min-width:34px;padding:0;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:var(--pink);color:var(--navy);font-size:12px;font-weight:800;box-shadow:0 3px 10px rgba(30,58,88,.12)}
+.hero .hero-route{overflow-wrap:anywhere;line-height:1.4}
+.hero .hero-route-more{display:inline-flex;align-items:center;justify-content:center;padding:1px 7px;border-radius:999px;background:var(--pink);color:var(--navy);font-weight:800;white-space:nowrap;cursor:pointer}
+.pcard small.dest-summary{display:flex;align-items:center;gap:5px;min-width:0;max-width:100%;height:18px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dest-summary-names{display:block;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dest-card-more{flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;border-radius:999px;padding:2px 6px;background:var(--pink);color:var(--navy);font-size:11px;font-weight:800;line-height:1.2;cursor:pointer}
+.dest-popover{position:fixed;z-index:9999;box-sizing:border-box;max-height:min(300px,55vh);overflow:auto;padding:8px;border:1px solid var(--line);border-radius:16px;background:var(--surface);color:var(--ink);box-shadow:0 14px 38px rgba(30,58,88,.22);overscroll-behavior:contain}
+.dest-popover-title{padding:7px 9px 9px;color:var(--muted);font-size:10px;font-weight:800;letter-spacing:.09em;text-transform:uppercase}
+.dest-pop-item{width:100%;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 11px;border:0;border-radius:10px;background:transparent;color:var(--ink);font:600 13px 'DM Sans',system-ui,sans-serif;text-align:left;line-height:1.35}
+button.dest-pop-item{cursor:pointer}
+.dest-pop-item:hover,.dest-pop-item.active{background:var(--chip)}
+.dest-pop-item i{font-size:10px;font-style:normal;color:var(--rose);font-weight:800}
+.dest-pop-item.static{pointer-events:none}
+/* A brand-new browser starts with an empty personal workspace, not demo trips. */
+.hero.is-empty{min-height:0;height:auto;padding:0;background:transparent;color:var(--ink);overflow:visible;display:block}
+.hero.is-empty>.empty-welcome{margin:0;padding:24px;border-radius:24px;background:var(--surface);border:1px solid var(--line);color:var(--ink);box-shadow:0 8px 28px rgba(30,58,88,.06)}
+.empty-welcome .empty-kicker{display:block;color:var(--rose);font-size:10px;font-weight:800;letter-spacing:.12em;margin-bottom:12px}
+.hero.is-empty .empty-welcome h1{font-size:clamp(26px,5vw,34px);line-height:1.08;letter-spacing:-.035em;color:var(--ink);margin:0 0 10px}
+.hero.is-empty .empty-welcome p{font-size:14px;line-height:1.55;color:var(--muted);margin:0;max-width:440px}
+.empty-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}
+.empty-actions .btn{margin-top:0}
+.empty-actions .ghost{display:inline-flex;align-items:center;justify-content:center;padding:10px 15px;border-radius:999px;border:1px solid var(--line);color:var(--ink);font-weight:700}
+.empty-name{display:block;margin-top:15px;padding:0;border:0;background:transparent;color:var(--muted);font-size:12px;text-decoration:underline;text-underline-offset:3px}
+.empty-plans{grid-column:1/-1;padding:18px 16px;border:1px dashed var(--line);border-radius:18px;color:var(--muted);font-size:13px}
+.pills[hidden]{display:none!important}
+.tabs button:disabled{opacity:.32;cursor:not-allowed;box-shadow:none;transform:none}
+@media(max-width:520px){.hero.is-empty>.empty-welcome{padding:22px 18px}.empty-actions{gap:8px}.pcard small.dest-summary{max-width:100%}}
+
+
+.personal-gate .mfoot button[data-close]{display:none}
+.personal-gate .access-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.personal-gate .access-actions button{flex:1 1 145px}
+.personal-gate .access-code-box{display:flex;align-items:center;gap:8px;min-width:0}
+.personal-gate .access-code-box input{min-width:0;flex:1;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.04em}
+.personal-gate .access-code-box button{flex:0 0 auto}
+.access-code-box{display:flex;align-items:center;gap:8px;min-width:0}
+.access-code-box input{min-width:0;flex:1;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.04em}
+.access-code-box button{flex:0 0 auto}
+
 </style>
 </head>
 <body>
@@ -1003,7 +1055,7 @@ const lum=c=>{const n=parseInt(c.slice(1),16);return(.299*(n>>16)+.587*((n>>8)&2
 const ink=c=>lum(c)<.5?'#FFEDF1':'#1E3A58';
 const COL=['#2F5881','#FF78A7','#FFCDE5','#B8C4CA','#7FB7A4','#F6BC8B'];
 const TXT=['#1E3A58','#FF78A7','#C2185B','#2E7D6B','#B8860B'],BGS=['#FFCDE5','#B8C4CA','#FFEDF1','#E3F1EA','#FFF1C9','#2F5881'];
-let ME=(()=>{try{return localStorage.getItem('plyt-me')||'Pablo'}catch(e){return'Pablo'}})();
+let ME=(()=>{try{return localStorage.getItem('plyt-me')||''}catch(e){return''}})();
 const setMe=v=>{ME=v;try{localStorage.setItem('plyt-me',v)}catch(e){}};
 /* Per-plan identity: who I am inside each plan. Kept in its own localStorage key, so plan data and Firestore stay unchanged. */
 let PME={};try{PME=JSON.parse(localStorage.getItem('plyt-me-plans'))||{}}catch(e){}
@@ -1123,15 +1175,34 @@ const BUD1={total:18000000,cur:'\u20ab',set:[],exp:[ex('Hotel in Da Nang, 3 nigh
 return[{id:nid(),name:'Noel trip',color:'#2F5881',start:'2026-12-20',end:'2026-12-26',note:'Pack warm layers for Da Lat.',mates:['Minh','An'],dests:[a,b],packing:{note:'<div>Sunscreen, <b>rain jacket</b>, chargers</div>',items:[{t:'Passport',d:true},{t:'Power bank',d:false},{t:'Swimwear',d:false}]},flights:[],bud:BUD1,owner:'Pablo'},
 {id:nid(),name:'Tet beach break',color:'#FF78A7',start:'2027-01-28',end:'2027-01-30',note:'',mates:['An'],dests:[c],packing:{note:'',items:[]},flights:[],bud:{total:6000000,cur:'\u20ab',exp:[],set:[]},owner:'Pablo'}]}
 const KEY='breeze-v2';let P,H,KM;
-try{const j=JSON.parse(localStorage.getItem(KEY));if(j&&j.P&&j.P.length){P=j.P;H=j.H||[];KM=j.KM}}catch(e){}
-if(!P){P=seed();H=[['Mi Quang 1A','Noodles'],['Marble Mountains','Caves and pagodas'],['Beachfront hotel','Stay'],['Bun cha ca 109','Fish cake soup'],['Han Market','Souvenirs']].map(a=>({id:nid(),n:a[0],s:a[1]}))}
-P.forEach(p=>{p.bud=p.bud||{total:0,cur:'\u20ab',exp:[],set:[]};p.owner=p.owner||ME;p.packing.items.forEach(i=>{if(!i.id)i.id=nid()})});
+const isUntouchedStarter=(ps)=>{
+ if(!Array.isArray(ps)||ps.length!==2||ps.some(p=>p.sync))return false;
+ // Compare the whole sample content (not just its name/date), ignoring only generated IDs.
+ // This prevents deleting a starter trip after the visitor has edited even one field.
+ const signature=p=>JSON.stringify(p,(k,v)=>k==='id'?undefined:v);
+ const actual=ps.map(signature).sort(),expected=seed().map(signature).sort();
+ return actual.length===expected.length&&actual.every((v,i)=>v===expected[i]);
+};
+try{
+ const j=JSON.parse(localStorage.getItem(KEY));
+ if(j&&Array.isArray(j.P)){
+  if(isUntouchedStarter(j.P)){
+   // Remove only the exact, untouched sample plans from previous builds.
+   // Any edited plan or Firebase-shared plan is preserved.
+   P=[];H=[];KM=[];
+   try{localStorage.setItem(KEY,JSON.stringify({P:[],H:[],KM:[]}))}catch(e){}
+  }else{P=j.P;H=j.H||[];KM=j.KM}
+ }
+}catch(e){}
+if(!P){P=[];H=[]}
+P.forEach(p=>{p.bud=p.bud||{total:0,cur:'\u20ab',exp:[],set:[]};p.owner=p.owner||ME;p.packing=p.packing||{note:'',items:[]};p.packing.items=p.packing.items||[];p.packing.items.forEach(i=>{if(!i.id)i.id=nid()})});
 P.forEach(p=>p.dests.forEach(d=>{if(!d.scm)d.sc=scOf(d.name)}));
-if(!KM)KM=[...new Set(['Minh','An',...P.flatMap(x=>x.mates)])];
-const save=()=>{try{localStorage.setItem(KEY,JSON.stringify({P,H,KM}))}catch(e){}try{checkDirty()}catch(e){}};
+if(!KM)KM=[...new Set(P.flatMap(x=>x.mates||[]))];
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify({P,H,KM}))}catch(e){}try{checkDirty()}catch(e){}try{schedulePersonalSync()}catch(e){}};
 const SP=()=>{const t=iso(today);return P.filter(p=>p.end>=t).sort((a,b)=>a.start.localeCompare(b.start)).concat(P.filter(p=>p.end<t).sort((a,b)=>b.end.localeCompare(a.end)))};
-const U={pid:SP()[0].id,did:null,day:0,sel:0,view:'static',zoom:null,hd:0,xp:SP()[0].id,a:null,b:null,cm:new Date(pd(SP()[0].start).getFullYear(),pd(SP()[0].start).getMonth(),1)};
-const cp=()=>P.find(p=>p.id===U.pid)||P[0];
+const bootPlan=SP()[0]||null;
+const U={pid:bootPlan?bootPlan.id:null,did:null,day:0,sel:0,view:'static',zoom:null,hd:0,xp:bootPlan?bootPlan.id:null,a:null,b:null,cm:bootPlan?new Date(pd(bootPlan.start).getFullYear(),pd(bootPlan.start).getMonth(),1):new Date(today.getFullYear(),today.getMonth(),1)};
+const cp=()=>P.find(p=>p.id===U.pid)||P[0]||null;
 const cd=()=>{const p=cp();return p.dests.find(d=>d.id===U.did)||p.dests[0]};
 const dd=d=>d.days.slice().sort();
 const dayL=(d,i)=>(d.dl&&d.dl[dd(d)[i]])||'Day '+(i+1);
@@ -1171,14 +1242,52 @@ function listHTML(stops,lbl){
  const A=[['note','note','Write a note'],['img','img','Add a picture'],['link','link','Add a link'],['edit','edit','Edit stop']];
  return stops.map((s,i)=>`<li class="stop${s.done?' done':''}${i===U.sel?' sel':''}" data-si="${i}"><button class="dot" data-done="${s.id}" aria-pressed="${s.done}" aria-label="Mark ${esc(s.name)} done">${IC.check}</button><div class="card" data-pick="${i}" style="${s.bg?`background:${s.bg};color:${ink(s.bg)}`:''}"><div class="chead"><time>${esc(s.time)} \u00b7 ${fm(s.date)}</time><div class="acts">${A.map(a=>`<button data-edit="${s.id}" data-f="${a[0]}" title="${a[2]}" aria-label="${a[2]}">${IC[a[1]]}</button>`).join('')}</div></div><b${s.color?` style="color:${s.color}"`:''}>${esc(s.name)}</b>${s.note?`<div class="note">${s.note}</div>`:''}${s.img?`<img class="simg" src="${s.img}" alt="">`:''}${s.link?`<a class="slink" href="${esc(s.link)}" target="_blank" rel="noopener">${IC.link} ${esc(s.ll||s.link)}</a>`:''}${s.tm&&i<stops.length-1?`<small class="leg">Next \u00b7 ${esc(legT(s))}</small>`:''}</div>${xb('s:'+s.id,'Delete '+s.name)}</li>`).join('')}
 function extras(p){const pk=p.packing;return `<div class="xcard"><div class="xh"><b>Packing</b><button class="mini" data-act="pack">${IC.edit} Edit</button></div>${pk.note?`<div class="note">${pk.note}</div>`:''}<ul class="chk">${pk.items.map((it,i)=>`<li><button data-pk="${i}" aria-pressed="${it.d}"><i>${it.d?IC.check:''}</i>${esc(it.t)}</button></li>`).join('')||'<li class="muted">Nothing on the list yet.</li>'}</ul></div><div class="xcard"><div class="xh"><b>Flights</b><button class="mini" data-act="flight">${IC.plus} Add</button></div>${p.flights.map(f=>`<button class="fcard" data-ef="${f.id}"><b>${esc(f.from)} \u2192 ${esc(f.to)} <em class="fe">${IC.edit}</em></b><span>${esc(f.air)} ${esc(f.no)} \u00b7 ${fdt(f.dep)}${f.seat?' \u00b7 Seat '+esc(f.seat):''}</span></button>`).join('')||'<p class="muted">No flights yet.</p>'}</div>`}
+function closeDestinationPopover(){const pop=$('#dest-popover');if(pop)pop.remove()}
+function openDestinationPopover(anchor,p,mode){
+ if(!anchor||!p)return;
+ const key=(mode==='hero'?'hero-':'card-')+p.id,existing=$('#dest-popover');
+ if(existing&&existing.dataset.anchor===key){closeDestinationPopover();return}
+ closeDestinationPopover();
+ const pop=document.createElement('div');pop.id='dest-popover';pop.className='dest-popover';pop.dataset.anchor=key;pop.setAttribute('role','dialog');pop.setAttribute('aria-label',mode==='hero'?'Choose destination scenery':'More destinations');
+ if(mode==='hero'){
+  pop.innerHTML=`<div class="dest-popover-title">Choose scenery</div>`+p.dests.map((d,i)=>`<button type="button" class="dest-pop-item${i===U.hd?' active':''}" data-pop-dest="${i}" data-pop-plan="${p.id}"><span>${esc(d.name)}</span>${i===U.hd?'<i>Current</i>':''}</button>`).join('');
+ }else{
+  pop.innerHTML=`<div class="dest-popover-title">More destinations</div>`+p.dests.slice(2).map(d=>`<div class="dest-pop-item static">${esc(d.name)}</div>`).join('');
+ }
+ document.body.appendChild(pop);
+ const r=anchor.getBoundingClientRect(),w=Math.min(280,window.innerWidth-24);pop.style.width=w+'px';
+ const h=pop.getBoundingClientRect().height,left=Math.max(12,Math.min(r.left,window.innerWidth-w-12));
+ const below=r.bottom+8,top=below+h<=window.innerHeight-12?below:Math.max(12,r.top-h-8);
+ pop.style.left=left+'px';pop.style.top=top+'px';
+}
+function cardDestinationSummary(p){
+ const ds=p.dests||[];
+ if(ds.length<=2)return `<small class="dest-summary"><span class="dest-summary-names">${ds.map(d=>esc(d.name)).join(' → ')}</span></small>`;
+ return `<small class="dest-summary"><span class="dest-summary-names">${esc(ds[0].name)} → ${esc(ds[1].name)} →</span><span class="dest-card-more" role="button" tabindex="0" data-card-dests="${p.id}" aria-label="Show ${ds.length-2} more destinations">+${ds.length-2}</span></small>`;
+}
+function renderEmptyApp(){
+ closeDestinationPopover();
+ $$('.screen').forEach(s=>s.classList.toggle('on',s.id==='home'));
+ $$('nav.tabs button[data-go]').forEach(b=>{const dis=b.dataset.go!=='home';b.disabled=dis;b.setAttribute('aria-disabled',String(dis));b.setAttribute('aria-selected',String(!dis))});
+ const name=ME.trim();$('#meName').textContent=name||'traveller';$('#avt').textContent=name?name.charAt(0).toUpperCase():'?';
+ const m2=$('#meAv2');if(m2){m2.textContent=name?name.charAt(0).toUpperCase():'?';$('#meNm2').textContent=name||'Traveller'}
+ $('#hNext').textContent='Your travel space is ready';
+ $('#hero').classList.add('is-empty');
+ $('#hero').innerHTML=`<div class="empty-welcome"><span class="empty-kicker">WELCOME TO PLYT</span><h1>No plans yet</h1><p>Create a trip of your own, or join a friend's plan with an invite link.</p><div class="empty-actions"><button class="btn" data-act="plan">Create your first plan</button><button class="ghost" data-act="join">Join a plan</button></div><button type="button" class="empty-name" data-act="me">${name?'Your name: '+esc(name)+' · Edit':'Set your name'}</button></div>`;
+ $('#pills').hidden=true;
+ $('#plans').innerHTML='<div class="empty-plans">Your plans will appear here after you create or join one.</div>';
+ $('#hsum').innerHTML='';
+}
 function renderHome(){
  $('#meName').textContent=ME;$('#avt').textContent=ME.charAt(0).toUpperCase();const m2=$('#meAv2');if(m2){m2.textContent=ME.charAt(0).toUpperCase();$('#meNm2').textContent=ME}
  const p=cp(),hd=p.dests[Math.min(U.hd,p.dests.length-1)],all=allStops(p),dn=all.filter(s=>s.done).length;
  const sp=SP(),pi=sp.findIndex(x=>x.id===p.id),t0=iso(today),ds0=diff(t0,p.start),de0=diff(t0,p.end),nu=sp.find(x=>x.end>=t0);
+ const heroDestControls=p.dests.length>3?`<button type="button" class="hd-count" data-hd-more="${p.id}" aria-label="Choose from ${p.dests.length} destinations">${p.dests.length}</button>`:p.dests.map((x,i)=>`<button type="button" data-hd="${i}" aria-pressed="${x===hd}">${esc(x.name)}</button>`).join('');
+ const heroRoute=p.dests.length>3?`${esc(p.dests[0].name)} → ${esc(p.dests[1].name)} → <span class="hero-route-more" data-hd-more="${p.id}" role="button" tabindex="0">+${p.dests.length-2}</span>`:p.dests.map(x=>esc(x.name)).join(' → ');
  $('#hNext').textContent=de0<0?`Ended ${-de0} day${de0===-1?'':'s'} ago`:ds0<=0?`Trip in progress \u00b7 day ${1-ds0} of ${diff(p.start,p.end)+1}`:ds0===1?'Trip starts tomorrow':`${nu&&nu.id===p.id?'Next trip':'Trip'} in ${ds0} days`;
- $('#hero').innerHTML=`<svg viewBox="0 0 380 230" preserveAspectRatio="xMidYMid slice" aria-hidden="true">${sceneX(hd.sc)}</svg><div class="hbar"><div class="hn"><button data-hp="-1" aria-label="Previous plan">\u2039</button><span>${pi+1} / ${sp.length}</span><button data-hp="1" aria-label="Next plan">\u203a</button></div><div class="hd">${p.dests.map((x,i)=>`<button data-hd="${i}" aria-pressed="${x===hd}">${esc(x.name)}</button>`).join('')}</div></div><div class="hp"><h1>${esc(p.name)}</h1><p>${fm(p.start)} \u2013 ${fm(p.end)} \u00b7 ${p.dests.map(x=>esc(x.name)).join(' \u2192 ')}</p>${p.sync?`<p class="syncp">${IC.cloud} ${esc(syncLabel(p))}</p>`:''}<div class="meter"><i style="width:${all.length?dn/all.length*100:0}%"></i></div><small>${dn} of ${all.length} stops done</small><br><button class="btn" data-go="plan">Open plan</button></div>`;
+ $('#hero').innerHTML=`<svg viewBox="0 0 380 230" preserveAspectRatio="xMidYMid slice" aria-hidden="true">${sceneX(hd.sc)}</svg><div class="hbar"><div class="hn"><button data-hp="-1" aria-label="Previous plan">\u2039</button><span>${pi+1} / ${sp.length}</span><button data-hp="1" aria-label="Next plan">\u203a</button></div><div class="hd">${heroDestControls}</div></div><div class="hp"><h1>${esc(p.name)}</h1><p class="hero-route">${fm(p.start)} \u2013 ${fm(p.end)} \u00b7 ${heroRoute}</p>${p.sync?`<p class="syncp">${IC.cloud} ${esc(syncLabel(p))}</p>`:''}<div class="meter"><i style="width:${all.length?dn/all.length*100:0}%"></i></div><small>${dn} of ${all.length} stops done</small><br><button class="btn" data-go="plan">Open plan</button></div>`;
  $('#pills').innerHTML=`<button class="pill" data-act="stop">${IC.plus} Add stop</button><button class="pill" data-act="flight">${IC.plane} Flights</button><button class="pill" data-act="pack">${IC.bag} Packing</button><button class="pill" data-act="expense">${IC.wallet} Budget</button><button class="pill" data-act="shareplan">${IC.share} Share plan</button>`;
- $('#plans').innerHTML=SP().map(x=>`<div class="pwrap"><button class="pcard${x.id===U.pid?' on':''}" data-pid="${x.id}" style="background:${x.color};color:${ink(x.color)}"><b>${esc(x.name)}</b><span>${fm(x.start)} \u2013 ${fm(x.end)}</span><small>${x.dests.map(d=>esc(d.name)).join(' \u00b7 ')}</small></button><button class="ico pedit" data-openp="${x.id}" aria-label="Open ${esc(x.name)} in the Plan page to edit" title="Open in Plan page to edit">${IC.edit}</button></div>`).join('')+`<button class="pcard add" data-act="plan">${IC.plus}<b>New plan</b></button>`}
+ $('#plans').innerHTML=SP().map(x=>`<div class="pwrap"><button class="pcard${x.id===U.pid?' on':''}" data-pid="${x.id}" style="background:${x.color};color:${ink(x.color)}"><b>${esc(x.name)}</b><span>${fm(x.start)} \u2013 ${fm(x.end)}</span>${cardDestinationSummary(x)}</button><button class="ico pedit" data-openp="${x.id}" aria-label="Open ${esc(x.name)} in the Plan page to edit" title="Open in Plan page to edit">${IC.edit}</button></div>`).join('')+`<button class="pcard add" data-act="plan">${IC.plus}<b>New plan</b></button>`}
 
 function setupSummaryOverflow(){
  const chips=$$('.dchips');
@@ -1258,11 +1367,17 @@ function renderCal(){
  $('#cal').innerHTML=h;
  const sb=$('#selbar');sb.hidden=!ra;if(ra)sb.innerHTML=`<span><b>${fm(ra)}${ra!==rb?' \u2013 '+fm(rb):''}</b> \u00b7 ${diff(ra,rb)+1} day${ra!==rb?'s':''}</span><button class="btn" data-act="plan" data-range="1">${IC.plus} Add plan</button><button class="ghost" data-csel>Clear</button>`;
  $('#clist').innerHTML=SP().map(p=>`<div class="crow2"><button class="crow" data-pid="${p.id}" data-go="plan"><i class="sw" style="background:${p.color}"></i><div><b>${esc(p.name)}</b><span>${fm(p.start)} \u2013 ${fm(p.end)} | ${p.dests.map(d=>esc(d.name)).join(', ')} | ${p.mates.length?'with '+p.mates.map(esc).join(', '):'solo'}</span></div></button><button class="ico" data-editp="${p.id}" aria-label="Edit plan">${IC.edit}</button></div>`).join('')}
-function render(){renderHome();renderSum();renderPlan();renderExplore();renderCal();renderBudget()}
-function go(id){$$('.screen').forEach(s=>s.classList.toggle('on',s.id===id));$$('.tabs button').forEach(b=>b.setAttribute('aria-selected',b.dataset.go===id));$('main').scrollTop=0;render()}
+function render(){
+ if(!P.length){renderEmptyApp();return}
+ closeDestinationPopover();
+ $('#hero').classList.remove('is-empty');$('#pills').hidden=false;
+ $$('nav.tabs button[data-go]').forEach(b=>{b.disabled=false;b.removeAttribute('aria-disabled')});
+ renderHome();renderSum();renderPlan();renderExplore();renderCal();renderBudget()
+}
+function go(id){if(!P.length&&id!=='home'){toast('Create a plan or join a friend first');return}$$('.screen').forEach(s=>s.classList.toggle('on',s.id===id));$$('.tabs button').forEach(b=>b.setAttribute('aria-selected',b.dataset.go===id));$('main').scrollTop=0;render()}
 /* ---------- modal helpers ---------- */
 let M={},IMG='',PK=[];
-function modal(t,body,o){o=o||{};M=o;$('#mbody').classList.remove('joinm','shareplanm');$('#mbody').innerHTML=`<h3 style="margin-top:0">${t}</h3>${body}<div class="mfoot">${o.del?'<button class="danger" id="mdel">Delete</button>':''}<button class="ghost" data-close>${o.save?'Cancel':'Close'}</button>${o.save?`<button class="btn" id="msave">${o.label||'Save'}</button>`:''}</div>`;$('#sheet').hidden=false;if(!o.nofocus){const f=$('#mbody input:not([type=file]):not([type=date]):not([type=time]),#mbody textarea');if(f)setTimeout(()=>f.focus(),30)}}
+function modal(t,body,o){o=o||{};M=o;$('#mbody').classList.remove('joinm','shareplanm','personal-gate');$('#mbody').innerHTML=`<h3 style="margin-top:0">${t}</h3>${body}<div class="mfoot">${o.del?'<button class="danger" id="mdel">Delete</button>':''}<button class="ghost" data-close>${o.save?'Cancel':'Close'}</button>${o.save?`<button class="btn" id="msave">${o.label||'Save'}</button>`:''}</div>`;$('#sheet').hidden=false;if(!o.nofocus){const f=$('#mbody input:not([type=file]):not([type=date]):not([type=time]),#mbody textarea');if(f)setTimeout(()=>f.focus(),30)}}
 const closeM=()=>{$('#sheet').hidden=true};
 const ask=(msg,fn,lb)=>modal('Please confirm',`<p>${msg}</p>`,{save:()=>{fn();return true},label:lb||'Delete',nofocus:1});
 let tt;const toast=m=>{const t=$('#toast');t.textContent=m;t.hidden=false;clearTimeout(tt);tt=setTimeout(()=>t.hidden=true,2400)};
@@ -1279,7 +1394,12 @@ const planSel=(id,v)=>sel(id,P.map(p=>[p.id,p.name]),v);
 /* ---------- modals ---------- */
 const mchip=(m,on)=>`<span class="xw"><button type="button" class="mc${on?' on':''}" data-mc data-v="${esc(m)}">${esc(m)}</button><button type="button" class="xdel" data-xmc aria-label="Remove ${esc(m)} from my travel-mate list" title="Remove from my list">${IC.x}</button></span>`;
 function openPlan(o){
- o=o||{};const ed=o.pid?P.find(p=>p.id===o.pid):null,[ra,rb]=rng(),s0=o.range&&ra?ra:iso(today),p=ed||{name:'',color:COL[0],start:s0,end:o.range&&rb?rb:addD(s0,2),note:'',mates:[]};
+ o=o||{};
+ if(!P.length&&!ME.trim()){
+  modal('Welcome to Plyt',`<p class="muted">What should we call you? This name will be used as the owner of your first plan.</p>`+F('Your name',`<input id="firstMe" maxlength=40 placeholder="Enter your name" aria-label="Your name">`),{label:'Continue',save:()=>{const n=$('#firstMe').value.trim();if(!n){bad('#firstMe');toast('Enter your name to continue');return false}if(n.length>40){bad('#firstMe');return false}setMe(n);render();setTimeout(()=>openPlan(o),0);return true}});
+  return;
+ }
+ const ed=o.pid?P.find(p=>p.id===o.pid):null,[ra,rb]=rng(),s0=o.range&&ra?ra:iso(today),p=ed||{name:'',color:COL[0],start:s0,end:o.range&&rb?rb:addD(s0,2),note:'',mates:[]};
  const known=KM.slice();
  modal(ed?'Edit plan':'New plan',F('Plan name',`<input id="pname" value="${esc(p.name)}" placeholder="e.g. Noel trip" aria-label="Plan name">`)
  +(ed?'':F('Destinations',`<div class="chips2" id="dch"></div><div class="addrow"><input id="dnew" placeholder="Where to? e.g. Da Nang" aria-label="Destination"><button type="button" class="mini" id="dadd">${IC.plus} Add</button></div>`))
@@ -1305,8 +1425,8 @@ function openPlan(o){
 function openDest(o){
  const p=cp(),ed=o&&o.edit?cd():null,last=dd(p.dests[p.dests.length-1]).pop();
  modal(ed?'Edit destination':'New destination',F('Destination name',`<input id="dname" value="${esc(ed?ed.name:'')}" placeholder="e.g. Da Lat" aria-label="Destination name">`)
- +F('Scenery',sel('dsc',[['auto','Auto from the name'],['hanoi','Old town and Hoan Kiem lake (Ha Noi)'],['hoian','Lanterns and old town (Hoi An)'],['saigon','City skyline (Ho Chi Minh City)'],['beach','Beach and sea (Da Nang, Nha Trang)'],['sand','Tropical sand and palms (Vung Tau, Phu Quoc)'],['pine','Pine forest and mist (Da Lat)'],['terrace','Rice terraces (Sapa)'],['halong','Limestone bay (Ha Long)'],['town','Generic town']],ed&&ed.scm?ed.sc:'auto'))
- +(ed?'':`<div class="two">${F('First day',`<input id="dstart" type="date" value="${addD(last,1)}" aria-label="First day">`)}${F('Days',`<input id="dlen" type="number" min="1" max="30" value="2" aria-label="Number of days">`)}</div>`),
+ +F('Scenery',sel('dsc',[['auto','Auto from destination name'],['hanoi','Historic streets and lakes'],['hoian','Heritage streets and lanterns'],['saigon','Modern city skyline'],['beach','Beaches and coastline'],['sand','Tropical islands and palms'],['pine','Pine forests and misty highlands'],['terrace','Mountain valleys and rice terraces'],['halong','Limestone karsts and bays'],['town','Countryside and rural landscapes']],ed&&ed.scm?ed.sc:'auto'))
+ +(ed?'':`<div class="two dest-date-fields">${F('First day',`<input id="dstart" type="date" value="${addD(last,1)}" aria-label="First day">`)}${F('Days',`<input id="dlen" type="number" min="1" max="30" value="2" aria-label="Number of days">`)}</div>`),
  {label:ed?'Save changes':'Add destination',del:ed?()=>ask(`Delete destination \u201c${esc(ed.name)}\u201d and its stops?`,()=>{if(p.dests.length<2){toast('A plan needs at least one destination');return}p.dests=p.dests.filter(x=>x!==ed);U.did=null;U.day=0;render()}):0,
  save:()=>{const nm=$('#dname').value.trim();if(!nm){bad('#dname');return false}const au=$('#dsc').value==='auto',sc=au?scOf(nm):$('#dsc').value;
   if(ed){ed.name=nm;ed.sc=sc;ed.scm=au?0:1}else{const s=$('#dstart').value||addD(last,1),n=Math.max(1,Math.min(30,+$('#dlen').value||1)),d={id:nid(),name:nm,sc,scm:au?0:1,days:Array.from({length:n},(_,k)=>addD(s,k)),stops:[]};p.dests.push(d);U.did=d.id;U.day=0;U.sel=0;if(s<p.start)p.start=s;if(addD(s,n-1)>p.end)p.end=addD(s,n-1)}
@@ -1424,10 +1544,21 @@ function openBShare(){const p=cp(),{b,spent}=calc(p),c=p.bud.cur,sug=suggest(b);
  const txt=`${p.name} \u2013 trip budget\nTotal spent: ${money(spent,c)}${p.bud.total?' of '+money(p.bud.total,c):''}\n\nWho pays whom:\n${sug.length?sug.map(s=>'\u2022 '+s.from+' pays '+s.to+' '+money(s.amt,c)).join('\n'):'\u2022 Everyone is settled up'}\n\nBalances:\n${Object.keys(b).map(n=>'\u2022 '+n+': paid '+money(b[n].paid,c)+', share '+money(b[n].share,c)).join('\n')}`;
  modal('Share summary',`<textarea id="stxt" rows="11" readonly aria-label="Summary">${esc(txt)}</textarea><p class="muted">Copy it and paste it into your group chat.</p>`,{label:'Copy',nofocus:1,save:()=>{const t=$('#stxt');t.select();let ok=false;try{ok=document.execCommand('copy')}catch(e){}try{navigator.clipboard.writeText(t.value);ok=true}catch(e){}toast(ok?'Copied':'Select the text and copy it');return false}})}
 /* ---------- cloud sync + sharing ---------- */
-const CLOUD_DEFAULT={p:'',k:'',m:''};
-let CL=Object.assign({p:'',k:'',m:''},CLOUD_DEFAULT);
-try{const c=JSON.parse(localStorage.getItem('plyt-cloud'));if(c)CL=Object.assign(CL,c)}catch(e){}
+const CLOUD_DEFAULT={p:'plyt-27e89',k:'AIzaSyDhQ8QWZa_niyU3t6VQoQek2tdPrk32F_w',m:''};
+let CL=Object.assign({},CLOUD_DEFAULT);
+try{const c=JSON.parse(localStorage.getItem('plyt-cloud'));if(c)CL=Object.assign({},CLOUD_DEFAULT,c)}catch(e){}
+if(!CL.p)CL.p=CLOUD_DEFAULT.p;if(!CL.k)CL.k=CLOUD_DEFAULT.k;
 const saveCL=()=>{try{localStorage.setItem('plyt-cloud',JSON.stringify(CL))}catch(e){}};
+// A personal space is protected by a high-entropy access code, not by the display name.
+const SPACE_KEY='plyt-personal-space-session';
+let SPACE={active:false,code:'',name:'',base:'',rev:0,t:'',busy:false,timer:0};
+const readSpaceSession=()=>{try{return JSON.parse(localStorage.getItem(SPACE_KEY)||'null')}catch(e){return null}};
+const saveSpaceSession=()=>{try{localStorage.setItem(SPACE_KEY,JSON.stringify({code:SPACE.code,name:SPACE.name}))}catch(e){}};
+const clearSpaceSession=()=>{try{localStorage.removeItem(SPACE_KEY)}catch(e){}};
+const cleanAccessCode=v=>String(v||'').toUpperCase().replace(/[^A-HJ-NP-Z2-9]/g,'');
+const prettyAccessCode=v=>cleanAccessCode(v).match(/.{1,4}/g)?.join('-')||'';
+const spaceNameKey=v=>String(v||'').normalize('NFC').replace(/\s+/g,' ').trim().toLowerCase();
+const makeAccessCode=()=>{const chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',a=new Uint8Array(20);crypto.getRandomValues(a);return Array.from(a,x=>chars[x%32]).join('')};
 const cloudOn=()=>!!(CL.p&&CL.k);
 const BUSY=new Set(),STM=new Map();let lastAct=Date.now();
 ['pointerdown','keydown'].forEach(ev=>document.addEventListener(ev,()=>{lastAct=Date.now()},true));
@@ -1453,6 +1584,33 @@ function merge3(b,l,r){
 const fsUrl=(c,q)=>`https://firestore.googleapis.com/v1/projects/${encodeURIComponent(CL.p)}/databases/(default)/documents/shares/${encodeURIComponent(c)}?key=${encodeURIComponent(CL.k)}${q?'&'+q:''}`;
 async function fsGet(c){const r=await fetch(fsUrl(c));if(r.status===404)return null;if(!r.ok)throw new Error('HTTP '+r.status);const j=await r.json(),f=j.fields||{};return{d:f.d?f.d.stringValue:'',r:f.r?+f.r.integerValue:0,t:j.updateTime}}
 async function fsPut(c,d,r,pre){const x=await fetch(fsUrl(c,pre),{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({fields:{d:{stringValue:d},r:{integerValue:String(r)},u:{integerValue:String(Date.now())}}})});if(x.ok)return{ok:true};if([400,409,412].includes(x.status))return{conflict:true};throw new Error('HTTP '+x.status)}
+const personalUrl=(code,q)=>`https://firestore.googleapis.com/v1/projects/${encodeURIComponent(CL.p)}/databases/(default)/documents/personalSpaces/${encodeURIComponent(code)}?key=${encodeURIComponent(CL.k)}${q?'&'+q:''}`;
+async function personalGet(code){const r=await fetch(personalUrl(code));if(r.status===404)return null;if(!r.ok)throw new Error('HTTP '+r.status);const j=await r.json(),f=j.fields||{};return{d:f.d?f.d.stringValue:'',r:f.r?+f.r.integerValue:0,t:j.updateTime};}
+async function personalPut(code,d,r,pre){if(d.length>900000)throw new Error('This personal space is too large for one Firestore document (900 KB limit). Remove unused plans or large notes and retry.');const x=await fetch(personalUrl(code,pre),{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({fields:{d:{stringValue:d},r:{integerValue:String(r)},u:{integerValue:String(Date.now())}}})});if(x.ok){let j={};try{j=await x.json()}catch(e){}return{ok:true,t:j.updateTime};}if([409,412].includes(x.status))return{conflict:true};let detail='';try{detail=(await x.json()).error?.message||''}catch(e){}throw new Error('HTTP '+x.status+(detail?': '+detail:''));}
+function personalSnapshot(name){return JSON.stringify({v:1,name:String(name||SPACE.name||ME||'').trim(),plans:P.map(p=>p.sync&&p.sync.code?{id:p.id,shareCode:p.sync.code}:{id:p.id,shareCode:'',plan:strip(p)}),H:H||[],KM:KM||[]});}
+function mergePlanImages(plan,old){if(!old||!plan)return plan;const imgs={};(old.dests||[]).forEach(d=>(d.stops||[]).forEach(t=>{if(t.img)imgs[t.id]=t.img}));(plan.dests||[]).forEach(d=>(d.stops||[]).forEach(t=>{if(imgs[t.id])t.img=imgs[t.id]}));return plan;}
+async function inflatePersonalSnapshot(data,code){SPACE.name=String(data.name||SPACE.name||ME||'').trim();SPACE.code=code;const old=new Map((P||[]).map(p=>[p.id,p])),plans=[];for(const item of (data.plans||[])){if(item.shareCode){const rem=await fsGet(item.shareCode);if(!rem)throw new Error('A shared plan in your space could not be found. Check its invite code and Firestore Rules.');const raw=JSON.parse(rem.d),prev=old.get(raw.id)||old.get(item.id);const plan=mergePlanImages(Object.assign({},raw,{sync:{code:item.shareCode,rev:rem.r,base:rem.d,at:Date.now(),err:''}}),prev);plans.push(plan);}else if(item.plan){const plan=JSON.parse(JSON.stringify(item.plan));plans.push(mergePlanImages(plan,old.get(plan.id)));}}
+ P=plans;H=Array.isArray(data.H)?data.H:[];KM=Array.isArray(data.KM)?data.KM:[...new Set(P.flatMap(p=>p.mates||[]))];ME=String(data.name||ME||'').trim();try{localStorage.setItem('plyt-me',ME)}catch(e){};
+ P.forEach(p=>{p.bud=p.bud||{total:0,cur:'\u20ab',exp:[],set:[]};p.owner=p.owner||ME;p.packing=p.packing||{note:'',items:[]};p.packing.items=p.packing.items||[];p.packing.items.forEach(i=>{if(!i.id)i.id=nid()});p.dests=p.dests||[];p.dests.forEach(d=>{if(!d.sc)d.sc=scOf(d.name);d.days=d.days||[];d.stops=d.stops||[]});});
+ U.pid=(P.find(p=>p.id===U.pid)||SP()[0]||{}).id||null;U.xp=U.pid;U.did=null;U.day=0;U.sel=0;U.hd=0;
+}
+function schedulePersonalSync(){if(!SPACE.active||SPACE.busy)return;clearTimeout(SPACE.timer);if(personalSnapshot()===SPACE.base)return;SPACE.timer=setTimeout(()=>syncPersonalSpace().catch(e=>{if(SPACE.active)toast('Personal-space sync failed: '+(e.message||e))}),1200);}
+async function syncPersonalSpace(){if(!SPACE.active||!cloudOn()||SPACE.busy)return;SPACE.busy=true;let ok=false;try{for(let attempt=0;attempt<4;attempt++){const remote=await personalGet(SPACE.code);if(!remote)throw new Error('Personal space not found. Check your access code and Firestore Rules.');const localD=personalSnapshot(),baseD=SPACE.base||remote.d;let merged;try{merged=merge3(JSON.parse(baseD),JSON.parse(localD),JSON.parse(remote.d));}catch(e){throw new Error('Could not merge your personal-space data. Please reload the app.')}const mergedD=JSON.stringify(merged);if(remote.d!==baseD){await inflatePersonalSnapshot(merged,SPACE.code);}
+ if(mergedD===remote.d){SPACE.base=remote.d;SPACE.rev=remote.r;SPACE.t=remote.t;ok=true;break;}
+ const res=await personalPut(SPACE.code,mergedD,remote.r+1,'currentDocument.updateTime='+encodeURIComponent(remote.t));if(res.conflict){continue;}SPACE.base=mergedD;SPACE.rev=remote.r+1;SPACE.t=res.t||remote.t;ok=true;break;}
+ if(!ok)throw new Error('Your plans changed on another device at the same time. Please wait a moment and retry.');
+ }finally{SPACE.busy=false;}if(ok&&SPACE.active&&personalSnapshot()!==SPACE.base)schedulePersonalSync();}
+function personalErrorText(e){const m=String(e&&e.message||e);if(m.includes('HTTP 403'))return 'Firebase denied access. Publish the updated firestore.rules that includes /personalSpaces before using personal access codes.';if(m.includes('HTTP 404'))return 'Personal space not found. Check both your name and access code.';return m;}
+function openPersonalGate(message){const sess=readSpaceSession();modal('Your Plyt space',`<p class="muted">Enter your name and personal access code to open your plans on any device. New here? Create a personal space and Plyt will generate a unique code for you.</p>${message?`<p class="jmsg err" id="spacemsg">${esc(message)}</p>`:`<p class="jmsg" id="spacemsg" role="status"></p>`}${F('Your name',`<input id="spaceName" maxlength=40 placeholder="Enter your name" autocomplete="name" value="${esc(sess&&sess.name||'')}" aria-label="Your name">`)}${F('Personal access code',`<input id="spaceCode" maxlength=24 placeholder="XXXX-XXXX-XXXX-XXXX-XXXX" autocomplete="off" autocapitalize="characters" value="${esc(sess&&sess.code?prettyAccessCode(sess.code):'')}" aria-label="Personal access code">`)}<div class="access-actions"><button type="button" class="mini" data-act="createspace">Create new personal space</button><button type="button" class="ghost" data-act="joinfromgate">Join a friend’s plan</button></div>${P.length?'<p class="muted">Plans currently saved in this browser can be uploaded when you create a new personal space. Sign in to an existing space to replace this local view with its cloud plans.</p>':''}`,{label:'Open my plans',nofocus:1,save:()=>{openExistingPersonalSpaceFromGate();return false;}});$('#mbody').classList.add('personal-gate');}
+async function openExistingPersonalSpaceFromGate(){const name=$('#spaceName').value.trim(),code=cleanAccessCode($('#spaceCode').value),msg=$('#spacemsg'),btn=$('#msave');if(!name||name.length>40){msg.textContent='Enter your name (up to 40 characters).';msg.className='jmsg err';return;}if(!/^[A-HJ-NP-Z2-9]{20}$/.test(code)){msg.textContent='Enter the full 20-character access code.';msg.className='jmsg err';return;}btn.disabled=true;msg.textContent='Checking your personal space…';msg.className='jmsg';try{const rec=await personalGet(code);if(!rec){msg.textContent='Name or access code is incorrect. Check both and try again.';msg.className='jmsg err';return;}const data=JSON.parse(rec.d);if(spaceNameKey(name)!==spaceNameKey(data.name)){msg.textContent='Name or access code is incorrect. Check both and try again.';msg.className='jmsg err';return;}await activatePersonalSpace(code,data,rec);closeM();render();toast('Welcome back, '+data.name);if(personalSnapshot()!==SPACE.base)schedulePersonalSync();}catch(e){msg.textContent=personalErrorText(e);msg.className='jmsg err';}finally{if($('#msave'))$('#msave').disabled=false;}}
+async function createPersonalSpaceFromGate(){const name=$('#spaceName').value.trim();const msg=$('#spacemsg');if(!name||name.length>40){msg.textContent='Enter your name (up to 40 characters) before creating your space.';msg.className='jmsg err';$('#spaceName').focus();return;}if(!cloudOn()){msg.textContent='Firebase is not configured on this app. Open Cloud sync settings first.';msg.className='jmsg err';return;}const button=$$('#mbody [data-act=createspace]')[0];if(button)button.disabled=true;msg.textContent='Generating your access code and saving your plans…';msg.className='jmsg';const oldME=ME;try{setMe(name);P.forEach(p=>{if(!p.owner)p.owner=name});let made=null;for(let tries=0;tries<3;tries++){const code=makeAccessCode(),d=personalSnapshot(name);const res=await personalPut(code,d,1,'currentDocument.exists=false');if(res.conflict)continue;made={code,d,res};break;}if(!made)throw new Error('Could not generate a unique access code. Please retry.');SPACE={active:true,code:made.code,name,base:made.d,rev:1,t:made.res.t||'',busy:false,timer:0};saveSpaceSession();closeM();save();render();showNewPersonalCode(made.code,name);}catch(e){setMe(oldME);msg.textContent=personalErrorText(e);msg.className='jmsg err';}finally{if(button&&button.isConnected)button.disabled=false;}}
+async function activatePersonalSpace(code,data,rec){SPACE={active:false,code,name:String(data.name||''),base:rec.d,rev:rec.r,t:rec.t||'',busy:false,timer:0};await inflatePersonalSnapshot(data,code);SPACE.active=true;saveSpaceSession();}
+function showNewPersonalCode(code,name){modal('Your personal access code',`<p class="muted">Save this code somewhere safe. On another device, enter both <b>${esc(name)}</b> and this code to open your plans. Anyone with this code can access your personal space. Plyt cannot recover it if you lose it.</p><div class="access-code-box"><input id="shownSpaceCode" readonly value="${esc(prettyAccessCode(code))}" aria-label="Your access code"><button type="button" class="mini" data-act="copyspacecode">Copy code</button></div><p class="muted">Your existing plans in this browser have been added to this personal space. Shared plans continue to use their existing invite links.</p>`,{label:'I have saved my code',nofocus:1,save:()=>{render();return true;}});}
+async function copyPersonalCode(){const code=SPACE.code||((readSpaceSession()||{}).code)||'';if(!code){toast('No personal access code is available');return;}toast(await copyText(prettyAccessCode(code))?'Personal access code copied':'Could not copy the code');}
+async function switchPersonalSpace(){if(SPACE.busy){toast('Personal-space sync is still running. Try again in a moment.');return;}clearTimeout(SPACE.timer);try{if(SPACE.active)await syncPersonalSpace();}catch(e){toast('Could not sync before switching: '+(e.message||e));return;}SPACE={active:false,code:'',name:'',base:'',rev:0,t:'',busy:false,timer:0};clearSpaceSession();closeM();openPersonalGate();}
+async function bootPersonalSpace(){const sess=readSpaceSession();if(sess&&sess.code){modal('Opening your plans','<p class="muted">Loading your personal space from Firebase…</p>',{nofocus:1});try{const rec=await personalGet(cleanAccessCode(sess.code));if(!rec)throw new Error('Personal space not found. Enter your name and access code again.');const data=JSON.parse(rec.d);await activatePersonalSpace(cleanAccessCode(sess.code),data,rec);closeM();render();if(personalSnapshot()!==SPACE.base)schedulePersonalSync();}catch(e){closeM();openPersonalGate(personalErrorText(e));}}else openPersonalGate(P.length?'This browser has local plans that are not linked to a personal access code yet. Create a new space here to migrate them.':'');}
+function bootApp(){const incoming=/^#(join|plan)=/.test(location.hash||'');const sess=readSpaceSession();if(sess&&sess.code){bootPersonalSpace().then(()=>{if(incoming){if($('#mbody').classList.contains('personal-gate'))closeM();handleHash();}});}else if(incoming){handleHash();}else openPersonalGate(P.length?'This browser has local plans that are not linked to a personal access code yet. Create a new space here to migrate them.':'');}
+
 function adopt(s,m,rev,md){const old=P.find(x=>x.sync===s);if(!old)return;const imgs={};old.dests.forEach(d=>d.stops.forEach(t=>{if(t.img)imgs[t.id]=t.img}));const np=Object.assign({},m,{sync:s});np.dests.forEach(d=>d.stops.forEach(t=>{if(imgs[t.id])t.img=imgs[t.id]}));P[P.indexOf(old)]=np;s.rev=rev;s.base=md}
 function sched(p,ms){const s=p.sync;if(!s)return;clearTimeout(STM.get(s));STM.set(s,setTimeout(()=>{const q=P.find(x=>x.sync===s);if(q)syncNow(q)},ms))}
 async function syncNow(p){
@@ -1472,7 +1630,7 @@ async function syncNow(p){
  catch(e){s.err=String(e.message||e)}
  finally{BUSY.delete(s);render()}}
 function checkDirty(){if(!cloudOn())return;P.forEach(p=>{const s=p.sync;if(s&&!BUSY.has(s)&&JSON.stringify(strip(p))!==s.base)sched(p,1500)})}
-function startPolling(){const ms=window.SYNC_MS||20000,all=()=>P.forEach(p=>{if(p.sync)syncNow(p)});setInterval(()=>{if(document.visibilityState==='visible'&&Date.now()-lastAct<6e5)all()},ms);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')all()})}
+function startPolling(){const ms=window.SYNC_MS||20000,all=()=>{P.forEach(p=>{if(p.sync)syncNow(p)});if(SPACE.active)syncPersonalSpace().catch(e=>{if(SPACE.active)console.warn('Personal-space sync',e)})};setInterval(()=>{if(document.visibilityState==='visible'&&Date.now()-lastAct<6e5)all()},ms);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')all()})}
 const ago=t=>{const d=Math.round((Date.now()-t)/1000);return d<10?'just now':d<60?d+'s ago':d<3600?Math.floor(d/60)+' min ago':Math.floor(d/3600)+' h ago'};
 const syncLabel=p=>{const s=p.sync;return!s?'':BUSY.has(s)?'Syncing\u2026':s.err?'Offline \u2013 will retry':s.at?'Shared \u00b7 synced '+ago(s.at):'Shared \u00b7 waiting to sync'};
 const baseUrl=()=>{try{return location.href.split('#')[0]}catch(e){return''}};
@@ -1483,7 +1641,7 @@ const ub64=t=>{t=t.replace(/-/g,'+').replace(/_/g,'/');while(t.length%4)t+='=';c
 async function enc(o){const raw=new TextEncoder().encode(JSON.stringify(o));try{const cs=new CompressionStream('deflate-raw'),w=cs.writable.getWriter();w.write(raw);w.close();return'z'+b64u(new Uint8Array(await new Response(cs.readable).arrayBuffer()))}catch(e){return'p'+b64u(raw)}}
 async function dec(t){const u=ub64(t.slice(1));if(t[0]==='z'){const ds=new DecompressionStream('deflate-raw'),w=ds.writable.getWriter();w.write(u);w.close();return JSON.parse(await new Response(ds.readable).text())}return JSON.parse(new TextDecoder().decode(u))}
 async function copyText(t,el){try{await navigator.clipboard.writeText(t);return true}catch(e){}try{const x=el||document.body.appendChild(Object.assign(document.createElement('textarea'),{value:t}));x.select();const ok=document.execCommand('copy');if(!el)x.remove();return ok}catch(e){return false}}
-function openMe(){modal('Your name',`<p class="muted">Shown in your greeting and used as \u201cyou\u201d in budgets. Friends who join a shared plan choose their own name.</p>`+F('Name',`<input id="mn" value="${esc(ME)}" aria-label="Your name">`),{label:'Save',save:()=>{const v=$('#mn').value.trim();if(!v){bad('#mn');return false}if(v!==ME){const o=ME;P.forEach(pl=>{if(pl.owner===o)pl.owner=v});renameMate(o,v);KM=KM.map(x=>x===o?v:x);setMe(v);Object.keys(PME).forEach(k=>{if(PME[k]===o)PME[k]=v});savePME()}render();return true}})}
+function openMe(){const access=SPACE.active?`<div class="shsec"><span class="bl">Personal access code</span><div class="access-code-box"><input readonly value="${esc(prettyAccessCode(SPACE.code))}" aria-label="Personal access code"><button type="button" class="mini" data-act="copyspacecode">Copy</button></div><p class="muted">Use this code with your name to open your personal plans on another device.</p><button type="button" class="ghost" data-act="switchspace">Switch personal space</button></div>`:`<div class="shsec"><span class="bl">Personal plans</span><p class="muted">Link your plans to a personal access code so they appear on your other devices.</p><button type="button" class="mini" data-act="personalaccess">Open personal space</button></div>`;modal('Your name',`<p class="muted">Shown in your greeting and used as “you” in budgets. Friends who join a shared plan choose their own name.</p>`+F('Name',`<input id="mn" value="${esc(ME)}" aria-label="Your name">`)+access,{label:'Save',save:()=>{const v=$('#mn').value.trim();if(!v){bad('#mn');return false}if(v.length>40){bad('#mn');return false}if(v!==ME){const o=ME;P.forEach(pl=>{if(pl.owner===o)pl.owner=v});renameMate(o,v);KM=KM.map(x=>x===o?v:x);setMe(v);Object.keys(PME).forEach(k=>{if(PME[k]===o)PME[k]=v});savePME();if(SPACE.active){SPACE.name=v;saveSpaceSession()}}render();return true}})}
 function openSharePlan(){
  const p=cp(),s=p.sync,link=s?inviteLink(p):'';let live;
  if(!cloudOn())live=`<p class="muted">Live sync keeps this plan identical on every friend's phone. It needs a free cloud database that you set up once.</p><button class="mini" data-act="cloud">${IC.cloud} Set up cloud sync</button>`;
@@ -1588,15 +1746,26 @@ function delX(k,v){const p=cp(),d=cd();
  else if(k==='e'){const r=findExp(v);if(r)ask(`Delete \u201c${esc(r.e.t)}\u201d?`,()=>{r.p.bud.exp=r.p.bud.exp.filter(x=>x!==r.e);render()})}
  else if(k==='t'){const s=p.bud.set.find(x=>x.id===v);if(s)ask('Delete this payment record?',()=>{p.bud.set=p.bud.set.filter(x=>x!==s);render()})}
  else if(k==='s'){const r=findStop(v);if(r)ask(`Delete \u201c${esc(r.s.name)}\u201d?`,()=>{r.d.stops=r.d.stops.filter(x=>x!==r.s);U.sel=0;render()})}}
-function act(a,D){hideMenus();({plan:()=>openPlan({range:D.range}),editplan:()=>openPlan({pid:U.pid}),dest:()=>openDest(),editdest:()=>openDest({edit:1}),stop:()=>openStop({}),day:()=>openDay({}),editday:()=>openDay({edit:1}),flight:()=>openFlight({}),pack:openPack,me:openMe,shareplan:openSharePlan,cloud:openCloud,startshare:startShare,copylink:copyLink,nativeshare:nativeShare,syncnow:syncBtn,stopshare:stopShare,snap:snapShare,join:()=>openJoin(),testcloud:testCloud,maptoggle:()=>{U.mh=!U.mh;renderExplore()},expense:()=>openExpense({}),settle:()=>openSettle({}),bset:openBset,share:openBShare,mates:openMates,addmate:()=>{openMates();setTimeout(()=>{const i=$('#mnew2');if(i)i.focus()},40)}}[a]||(()=>{}))()}
+function act(a,D){hideMenus();({plan:()=>openPlan({range:D.range}),editplan:()=>openPlan({pid:U.pid}),createspace:createPersonalSpaceFromGate,joinfromgate:()=>{closeM();openJoin()},copyspacecode:copyPersonalCode,switchspace:switchPersonalSpace,personalaccess:()=>{closeM();openPersonalGate()},dest:()=>openDest(),editdest:()=>openDest({edit:1}),stop:()=>openStop({}),day:()=>openDay({}),editday:()=>openDay({edit:1}),flight:()=>openFlight({}),pack:openPack,me:openMe,shareplan:openSharePlan,cloud:openCloud,startshare:startShare,copylink:copyLink,nativeshare:nativeShare,syncnow:syncBtn,stopshare:stopShare,snap:snapShare,join:()=>openJoin(),testcloud:testCloud,maptoggle:()=>{U.mh=!U.mh;renderExplore()},expense:()=>openExpense({}),settle:()=>openSettle({}),bset:openBset,share:openBShare,mates:openMates,addmate:()=>{openMates();setTimeout(()=>{const i=$('#mnew2');if(i)i.focus()},40)}}[a]||(()=>{}))()}
+document.addEventListener('keydown',e=>{
+ if((e.key==='Enter'||e.key===' ')&&e.target.closest('[data-card-dests],[data-hd-more]')){e.preventDefault();e.target.closest('[data-card-dests],[data-hd-more]').click()}
+ if(e.key==='Escape')closeDestinationPopover();
+});
+window.addEventListener('resize',closeDestinationPopover);
+window.addEventListener('scroll',e=>{if(!e.target.closest?.('.dest-popover'))closeDestinationPopover()},true);
 document.addEventListener('mousedown',e=>{if(e.target.closest('.tb button'))e.preventDefault()});
 document.addEventListener('click',e=>{
- const T=e.target;if(!T.closest('.dd'))hideMenus();
+ const T=e.target;
+ if(!T.closest('.dest-popover')&&!T.closest('[data-card-dests],[data-hd-more]'))closeDestinationPopover();
+ if(!T.closest('.dd'))hideMenus();
  const xa=T.closest('a[data-xs]');if(xa){doSearch(true);return}
  const nd=T.closest('[data-sel]');if(nd){selStop(+nd.dataset.sel,true);return}
  const tb=T.closest('.tb button');if(tb){document.execCommand(tb.dataset.cmd,false,tb.dataset.val||null);return}
- const el=T.closest('button,a,[data-act],[data-d],[data-pick]');if(!el||el.tagName==='A')return;const D=el.dataset;
- if(D.close!==undefined){closeM();return}
+ const el=T.closest('button,a,[data-act],[data-d],[data-pick],[data-card-dests],[data-hd-more],[data-pop-dest]');if(!el||el.tagName==='A')return;const D=el.dataset;
+ if(D.cardDests){e.preventDefault();e.stopPropagation();const p=P.find(x=>x.id===D.cardDests);openDestinationPopover(el,p,'card');return}
+ if(D.hdMore){e.preventDefault();e.stopPropagation();const p=P.find(x=>x.id===D.hdMore);openDestinationPopover(el,p,'hero');return}
+ if(D.popDest!==undefined){e.preventDefault();e.stopPropagation();const p=P.find(x=>x.id===D.popPlan);if(p){U.pid=p.id;U.xp=p.id;U.hd=+D.popDest;renderHome()}closeDestinationPopover();return}
+ if(D.close!==undefined){if($('#mbody').classList.contains('personal-gate'))return;closeM();return}
  if(el.id==='msave'){if(!M.save||M.save()!==false)closeM();return}
  if(el.id==='mdel'){M.del&&M.del();return}
  if(D.act){act(D.act,D);return}
@@ -1657,7 +1826,7 @@ document.addEventListener('change',e=>{const t=e.target;
  if(t.id==='pp'){const p=P.find(x=>x.id===t.value);PK=p.packing.items.map(x=>({...x}));$('#rte').innerHTML=p.packing.note;drawPK()}});
 document.addEventListener('input',e=>{if(e.target.id==='q')renderExplore();if(e.target.id==='ea')updRem();if(e.target.id==='jname')joinRefresh(false);if(e.target.dataset&&e.target.dataset.exn!==undefined){XS.ex[e.target.dataset.exn]=+e.target.value;updRem()}if(e.target.dataset&&e.target.dataset.pii!==undefined)PK[+e.target.dataset.pii].t=e.target.value});
 document.addEventListener('keydown',e=>{
- if(e.key==='Escape'){closeM();hideMenus()}
+ if(e.key==='Escape'){if($('#mbody').classList.contains('personal-gate'))return;closeM();hideMenus()}
  if(e.key==='Enter'){const m={dnew:'#dadd',mnew:'#madd2',pnew:'#padd',mnew2:'#madd3',jname:'#msave'}[e.target.id];if(m){e.preventDefault();$(m).click()}else if(e.target.id==='q'){e.preventDefault();doSearch(false)}}
  const n=e.target.closest&&e.target.closest('[data-sel]');if(n&&(e.key==='Enter'||e.key===' ')){e.preventDefault();selStop(+n.dataset.sel,true)}
  const c=e.target.closest&&e.target.closest('[data-d]');if(c&&(e.key==='Enter'||e.key===' ')){e.preventDefault();c.click()}
@@ -1671,7 +1840,7 @@ document.addEventListener('mouseover',e=>{const T=e.target;if(!T.closest)return;
 document.addEventListener('focusin',e=>tip(e.target.closest&&e.target.closest('[data-sel]')));
 let rt;window.addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(renderPlan,150)});
 render();
-handleHash();
+bootApp();
 startPolling();
 
 </script>
