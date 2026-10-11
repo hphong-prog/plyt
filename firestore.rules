@@ -1,0 +1,28 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Plyt uses an unguessable share code as the capability in an invite link.
+    // This intentionally allows unauthenticated access ONLY to a single share
+    // document path under /shares; do not add a blanket allow rule elsewhere.
+    function validShareCode(code) {
+      return code.matches('^[a-z0-9]{12,32}$');
+    }
+
+    function validShareDocument() {
+      return request.resource.data.keys().hasAll(['d', 'r', 'u'])
+        && request.resource.data.keys().hasOnly(['d', 'r', 'u'])
+        && request.resource.data.d is string
+        && request.resource.data.d.size() <= 900000
+        && request.resource.data.r is int
+        && request.resource.data.u is int;
+    }
+
+    match /shares/{shareCode} {
+      // The app's connection check reads this fixed, non-existent test ID.
+      allow get: if validShareCode(shareCode)
+        || shareCode == 'connection-test-0000';
+      allow create, update: if validShareCode(shareCode)
+        && validShareDocument();
+    }
+  }
+}
