@@ -1008,6 +1008,24 @@ button.dest-pop-item{cursor:pointer}
 .dest-pop-item:hover,.dest-pop-item.active{background:var(--chip)}
 .dest-pop-item i{font-size:10px;font-style:normal;color:var(--rose);font-weight:800}
 .dest-pop-item.static{pointer-events:none}
+
+/* Desktop Home: compact scenery picker next to the plan pager; choices arranged as pills in a row. */
+@media (hover:hover) and (pointer:fine){
+  .hero>.hbar.has-dest-count{justify-content:flex-start;align-items:center;}
+  .hero>.hbar.has-dest-count .hd{justify-content:flex-start;margin-left:5px;}
+}
+#dest-popover.scenery-horizontal{
+  display:flex;flex-direction:row;flex-wrap:wrap;align-items:center;gap:6px;
+  padding:10px;max-height:min(300px,55vh);overflow:auto;
+}
+#dest-popover.scenery-horizontal .dest-popover-title{flex:0 0 100%;padding:2px 4px 3px;}
+#dest-popover.scenery-horizontal .dest-pop-item{
+  width:auto;flex:0 1 auto;max-width:100%;justify-content:center;gap:6px;
+  padding:8px 11px;border-radius:999px;background:var(--chip);white-space:nowrap;
+}
+#dest-popover.scenery-horizontal .dest-pop-item span{white-space:nowrap;}
+#dest-popover.scenery-horizontal .dest-pop-item i{margin-left:2px;}
+
 /* A brand-new browser starts with an empty personal workspace, not demo trips. */
 .hero.is-empty{min-height:0;height:auto;padding:0;background:transparent;color:var(--ink);overflow:visible;display:block}
 .hero.is-empty>.empty-welcome{margin:0;padding:24px;border-radius:24px;background:var(--surface);border:1px solid var(--line);color:var(--ink);box-shadow:0 8px 28px rgba(30,58,88,.06)}
@@ -1302,21 +1320,28 @@ function listHTML(stops,lbl){
  const A=[['note','note','Write a note'],['img','img','Add a picture'],['link','link','Add a link'],['edit','edit','Edit stop']];
  return stops.map((s,i)=>`<li class="stop${s.done?' done':''}${i===U.sel?' sel':''}" data-si="${i}"><button class="dot" data-done="${s.id}" aria-pressed="${s.done}" aria-label="Mark ${esc(s.name)} done">${IC.check}</button><div class="card" data-pick="${i}" style="${s.bg?`background:${s.bg};color:${ink(s.bg)}`:''}"><div class="chead"><time>${esc(s.time)} \u00b7 ${fm(s.date)}</time><div class="acts">${A.map(a=>`<button data-edit="${s.id}" data-f="${a[0]}" title="${a[2]}" aria-label="${a[2]}">${IC[a[1]]}</button>`).join('')}</div></div><b${s.color?` style="color:${s.color}"`:''}>${esc(s.name)}</b>${s.note?`<div class="note">${s.note}</div>`:''}${s.img?`<img class="simg" src="${s.img}" alt="">`:''}${s.link?`<a class="slink" href="${esc(s.link)}" target="_blank" rel="noopener">${IC.link} ${esc(s.ll||s.link)}</a>`:''}${s.tm&&i<stops.length-1?`<small class="leg">Next \u00b7 ${esc(legT(s))}</small>`:''}</div>${xb('s:'+s.id,'Delete '+s.name)}</li>`).join('')}
 function extras(p){const pk=p.packing;return `<div class="xcard"><div class="xh"><b>Packing</b><button class="mini" data-act="pack">${IC.edit} Edit</button></div>${pk.note?`<div class="note">${pk.note}</div>`:''}<ul class="chk">${pk.items.map((it,i)=>`<li><button data-pk="${i}" aria-pressed="${it.d}"><i>${it.d?IC.check:''}</i>${esc(it.t)}</button></li>`).join('')||'<li class="muted">Nothing on the list yet.</li>'}</ul></div><div class="xcard"><div class="xh"><b>Flights</b><button class="mini" data-act="flight">${IC.plus} Add</button></div>${p.flights.map(f=>`<button class="fcard" data-ef="${f.id}"><b>${esc(f.from)} \u2192 ${esc(f.to)} <em class="fe">${IC.edit}</em></b><span>${esc(f.air)} ${esc(f.no)} \u00b7 ${fdt(f.dep)}${f.seat?' \u00b7 Seat '+esc(f.seat):''}</span></button>`).join('')||'<p class="muted">No flights yet.</p>'}</div>`}
-function closeDestinationPopover(){const pop=$('#dest-popover');if(pop)pop.remove()}
+let destPopoverCloseTimer=0;
+function supportsDestinationHover(){return !!(window.matchMedia&&window.matchMedia('(hover: hover) and (pointer: fine)').matches)}
+function closeDestinationPopover(){clearTimeout(destPopoverCloseTimer);const pop=$('#dest-popover');if(pop)pop.remove()}
 function openDestinationPopover(anchor,p,mode){
  if(!anchor||!p)return;
  const key=(mode==='hero'?'hero-':'card-')+p.id,existing=$('#dest-popover');
  if(existing&&existing.dataset.anchor===key){closeDestinationPopover();return}
  closeDestinationPopover();
- const pop=document.createElement('div');pop.id='dest-popover';pop.className='dest-popover';pop.dataset.anchor=key;pop.setAttribute('role','dialog');pop.setAttribute('aria-label',mode==='hero'?'Choose destination scenery':'More destinations');
+ const pop=document.createElement('div');pop.id='dest-popover';pop.className='dest-popover';
+ if(mode==='hero')pop.classList.add('scenery-horizontal');
+ pop.dataset.anchor=key;pop.setAttribute('role','dialog');pop.setAttribute('aria-label',mode==='hero'?'Choose destination scenery':'More destinations');
  if(mode==='hero'){
   pop.innerHTML=`<div class="dest-popover-title">Choose scenery</div>`+p.dests.map((d,i)=>`<button type="button" class="dest-pop-item${i===U.hd?' active':''}" data-pop-dest="${i}" data-pop-plan="${p.id}"><span>${esc(d.name)}</span>${i===U.hd?'<i>Current</i>':''}</button>`).join('');
  }else{
   pop.innerHTML=`<div class="dest-popover-title">More destinations</div>`+p.dests.slice(2).map(d=>`<div class="dest-pop-item static">${esc(d.name)}</div>`).join('');
  }
  document.body.appendChild(pop);
- const r=anchor.getBoundingClientRect(),w=Math.min(280,window.innerWidth-24);pop.style.width=w+'px';
- const h=pop.getBoundingClientRect().height,left=Math.max(12,Math.min(r.left,window.innerWidth-w-12));
+ const r=anchor.getBoundingClientRect();
+ const w=mode==='hero'&&supportsDestinationHover()?Math.min(420,window.innerWidth-24):Math.min(280,window.innerWidth-24);
+ pop.style.width=w+'px';
+ const h=pop.getBoundingClientRect().height;
+ const left=mode==='hero'?Math.max(12,Math.min(r.left+r.width/2-w/2,window.innerWidth-w-12)):Math.max(12,Math.min(r.left,window.innerWidth-w-12));
  const below=r.bottom+8,top=below+h<=window.innerHeight-12?below:Math.max(12,r.top-h-8);
  pop.style.left=left+'px';pop.style.top=top+'px';
 }
@@ -1343,9 +1368,9 @@ function renderHome(){
  const p=cp(),hd=p.dests[Math.min(U.hd,p.dests.length-1)],all=allStops(p),dn=all.filter(s=>s.done).length;
  const sp=SP(),pi=sp.findIndex(x=>x.id===p.id),t0=iso(today),ds0=diff(t0,p.start),de0=diff(t0,p.end),nu=sp.find(x=>x.end>=t0);
  const heroDestControls=p.dests.length>3?`<button type="button" class="hd-count" data-hd-more="${p.id}" aria-label="Choose from ${p.dests.length} destinations">${p.dests.length}</button>`:p.dests.map((x,i)=>`<button type="button" data-hd="${i}" aria-pressed="${x===hd}">${esc(x.name)}</button>`).join('');
- const heroRoute=p.dests.length>3?`${esc(p.dests[0].name)} → ${esc(p.dests[1].name)} → <span class="hero-route-more" data-hd-more="${p.id}" role="button" tabindex="0">+${p.dests.length-2}</span>`:p.dests.map(x=>esc(x.name)).join(' → ');
+ const heroRoute=p.dests.length>3?`${esc(p.dests[0].name)} → ${esc(p.dests[1].name)} → <span class="hero-route-more" data-route-dests="${p.id}" role="button" tabindex="0" aria-label="Show ${p.dests.length-2} more destinations">+${p.dests.length-2}</span>`:p.dests.map(x=>esc(x.name)).join(' → ');
  $('#hNext').textContent=de0<0?`Ended ${-de0} day${de0===-1?'':'s'} ago`:ds0<=0?`Trip in progress \u00b7 day ${1-ds0} of ${diff(p.start,p.end)+1}`:ds0===1?'Trip starts tomorrow':`${nu&&nu.id===p.id?'Next trip':'Trip'} in ${ds0} days`;
- $('#hero').innerHTML=`<svg viewBox="0 0 380 230" preserveAspectRatio="xMidYMid slice" aria-hidden="true">${sceneX(hd.sc)}</svg><div class="hbar"><div class="hn"><button data-hp="-1" aria-label="Previous plan">\u2039</button><span>${pi+1} / ${sp.length}</span><button data-hp="1" aria-label="Next plan">\u203a</button></div><div class="hd">${heroDestControls}</div></div><div class="hp"><h1>${esc(p.name)}</h1><p class="hero-route">${fm(p.start)} \u2013 ${fm(p.end)} \u00b7 ${heroRoute}</p>${p.sync?`<p class="syncp">${IC.cloud} ${esc(syncLabel(p))}</p>`:''}<div class="meter"><i style="width:${all.length?dn/all.length*100:0}%"></i></div><small>${dn} of ${all.length} stops done</small><br><button class="btn" data-go="plan">Open plan</button></div>`;
+ $('#hero').innerHTML=`<svg viewBox="0 0 380 230" preserveAspectRatio="xMidYMid slice" aria-hidden="true">${sceneX(hd.sc)}</svg><div class="hbar${p.dests.length>3?' has-dest-count':''}"><div class="hn"><button data-hp="-1" aria-label="Previous plan">\u2039</button><span>${pi+1} / ${sp.length}</span><button data-hp="1" aria-label="Next plan">\u203a</button></div><div class="hd">${heroDestControls}</div></div><div class="hp"><h1>${esc(p.name)}</h1><p class="hero-route">${fm(p.start)} \u2013 ${fm(p.end)} \u00b7 ${heroRoute}</p>${p.sync?`<p class="syncp">${IC.cloud} ${esc(syncLabel(p))}</p>`:''}<div class="meter"><i style="width:${all.length?dn/all.length*100:0}%"></i></div><small>${dn} of ${all.length} stops done</small><br><button class="btn" data-go="plan">Open plan</button></div>`;
  $('#pills').innerHTML=`<button class="pill" data-act="stop">${IC.plus} Add stop</button><button class="pill" data-act="flight">${IC.plane} Flights</button><button class="pill" data-act="pack">${IC.bag} Packing</button><button class="pill" data-act="expense">${IC.wallet} Budget</button><button class="pill" data-act="shareplan">${IC.share} Share plan</button>`;
  $('#plans').innerHTML=SP().map(x=>`<div class="pwrap"><button class="pcard${x.id===U.pid?' on':''}" data-pid="${x.id}" style="background:${x.color};color:${ink(x.color)}"><b>${esc(x.name)}</b><span>${fm(x.start)} \u2013 ${fm(x.end)}</span>${cardDestinationSummary(x)}</button><button class="ico pedit" data-openp="${x.id}" aria-label="Open ${esc(x.name)} in the Plan page to edit" title="Open in Plan page to edit">${IC.edit}</button></div>`).join('')+`<button class="pcard add" data-act="plan">${IC.plus}<b>New plan</b></button>`}
 
@@ -1701,7 +1726,7 @@ const ub64=t=>{t=t.replace(/-/g,'+').replace(/_/g,'/');while(t.length%4)t+='=';c
 async function enc(o){const raw=new TextEncoder().encode(JSON.stringify(o));try{const cs=new CompressionStream('deflate-raw'),w=cs.writable.getWriter();w.write(raw);w.close();return'z'+b64u(new Uint8Array(await new Response(cs.readable).arrayBuffer()))}catch(e){return'p'+b64u(raw)}}
 async function dec(t){const u=ub64(t.slice(1));if(t[0]==='z'){const ds=new DecompressionStream('deflate-raw'),w=ds.writable.getWriter();w.write(u);w.close();return JSON.parse(await new Response(ds.readable).text())}return JSON.parse(new TextDecoder().decode(u))}
 async function copyText(t,el){try{await navigator.clipboard.writeText(t);return true}catch(e){}try{const x=el||document.body.appendChild(Object.assign(document.createElement('textarea'),{value:t}));x.select();const ok=document.execCommand('copy');if(!el)x.remove();return ok}catch(e){return false}}
-function openMe(){const access=SPACE.active?`<div class="shsec"><span class="bl">Personal access code</span><div class="access-code-box"><input readonly value="${esc(prettyAccessCode(SPACE.code))}" aria-label="Personal access code"><button type="button" class="mini" data-act="copyspacecode">Copy</button></div><p class="muted">Use this code with your name to open your personal plans on another device.</p><button type="button" class="ghost" data-act="switchspace">Switch personal space</button></div>`:`<div class="shsec"><span class="bl">Personal plans</span><p class="muted">Link your plans to a personal access code so they appear on your other devices.</p><button type="button" class="mini" data-act="personalaccess">Open personal space</button></div>`;modal('Your name',`<p class="muted">Shown in your greeting and used as “you” in budgets. Friends who join a shared plan choose their own name.</p>`+F('Name',`<input id="mn" value="${esc(ME)}" aria-label="Your name">`)+access,{label:'Save',save:()=>{const v=$('#mn').value.trim();if(!v){bad('#mn');return false}if(v.length>40){bad('#mn');return false}if(v!==ME){const o=ME;P.forEach(pl=>{if(pl.owner===o)pl.owner=v});renameMate(o,v);KM=KM.map(x=>x===o?v:x);setMe(v);Object.keys(PME).forEach(k=>{if(PME[k]===o)PME[k]=v});savePME();if(SPACE.active){SPACE.name=v;saveSpaceSession()}}render();return true}})}
+function openMe(){const access=SPACE.active?`<div class="shsec"><span class="bl">Personal access code</span><div class="access-code-box"><input readonly value="${esc(prettyAccessCode(SPACE.code))}" aria-label="Personal access code"><button type="button" class="mini" data-act="copyspacecode">Copy</button></div><p class="muted">Use this code with your name to open your personal plans on another device.</p><button type="button" class="ghost" data-act="switchspace">Switch user / personal space</button></div>`:`<div class="shsec"><span class="bl">Personal plans</span><p class="muted">Link your plans to a personal access code so they appear on your other devices.</p><button type="button" class="mini" data-act="personalaccess">Open personal space</button></div>`;modal('Your name',`<p class="muted">Shown in your greeting and used as “you” in budgets. Friends who join a shared plan choose their own name.</p>`+F('Name',`<input id="mn" value="${esc(ME)}" aria-label="Your name">`)+access,{label:'Save',save:()=>{const v=$('#mn').value.trim();if(!v){bad('#mn');return false}if(v.length>40){bad('#mn');return false}if(v!==ME){const o=ME;P.forEach(pl=>{if(pl.owner===o)pl.owner=v});renameMate(o,v);KM=KM.map(x=>x===o?v:x);setMe(v);Object.keys(PME).forEach(k=>{if(PME[k]===o)PME[k]=v});savePME();if(SPACE.active){SPACE.name=v;saveSpaceSession()}}render();return true}})}
 function openSharePlan(){
  const p=cp(),s=p.sync,link=s?inviteLink(p):'';let live;
  if(!cloudOn())live=`<p class="muted">Live sync keeps this plan identical on every friend's phone. It needs a free cloud database that you set up once.</p><button class="mini" data-act="cloud">${IC.cloud} Set up cloud sync</button>`;
@@ -1808,7 +1833,14 @@ function delX(k,v){const p=cp(),d=cd();
  else if(k==='s'){const r=findStop(v);if(r)ask(`Delete \u201c${esc(r.s.name)}\u201d?`,()=>{r.d.stops=r.d.stops.filter(x=>x!==r.s);U.sel=0;render()})}}
 function act(a,D){hideMenus();({plan:()=>openPlan({range:D.range}),editplan:()=>openPlan({pid:U.pid}),createspace:createPersonalSpaceFromGate,joinfromgate:()=>{closeM();openJoin()},copyspacecode:copyPersonalCode,switchspace:switchPersonalSpace,personalaccess:()=>{closeM();openPersonalGate()},dest:()=>openDest(),editdest:()=>openDest({edit:1}),stop:()=>openStop({}),day:()=>openDay({}),editday:()=>openDay({edit:1}),flight:()=>openFlight({}),pack:openPack,me:openMe,shareplan:openSharePlan,cloud:openCloud,startshare:startShare,copylink:copyLink,nativeshare:nativeShare,syncnow:syncBtn,stopshare:stopShare,snap:snapShare,join:()=>openJoin(),testcloud:testCloud,maptoggle:()=>{U.mh=!U.mh;renderExplore()},expense:()=>openExpense({}),settle:()=>openSettle({}),bset:openBset,share:openBShare,mates:openMates,addmate:()=>{openMates();setTimeout(()=>{const i=$('#mnew2');if(i)i.focus()},40)}}[a]||(()=>{}))()}
 document.addEventListener('keydown',e=>{
- if((e.key==='Enter'||e.key===' ')&&e.target.closest('[data-card-dests],[data-hd-more]')){e.preventDefault();e.target.closest('[data-card-dests],[data-hd-more]').click()}
+ if(e.key==='Enter'||e.key===' '){
+  const more=e.target.closest('[data-card-dests],[data-route-dests]');
+  const scenery=e.target.closest('[data-hd-more]');
+  if(more&&supportsDestinationHover()){
+   e.preventDefault();const id=more.dataset.cardDests||more.dataset.routeDests,p=P.find(x=>x.id===id),key='card-'+id,opened=$('#dest-popover');
+   if(p&&(!opened||opened.dataset.anchor!==key))openDestinationPopover(more,p,'card');
+  }else if(more||scenery){e.preventDefault();(more||scenery).click()}
+ }
  if(e.key==='Escape')closeDestinationPopover();
 });
 window.addEventListener('resize',closeDestinationPopover);
@@ -1816,13 +1848,20 @@ window.addEventListener('scroll',e=>{if(!e.target.closest?.('.dest-popover'))clo
 document.addEventListener('mousedown',e=>{if(e.target.closest('.tb button'))e.preventDefault()});
 document.addEventListener('click',e=>{
  const T=e.target;
- if(!T.closest('.dest-popover')&&!T.closest('[data-card-dests],[data-hd-more]'))closeDestinationPopover();
+ if(!T.closest('.dest-popover')&&!T.closest('[data-card-dests],[data-route-dests],[data-hd-more]'))closeDestinationPopover();
  if(!T.closest('.dd'))hideMenus();
  const xa=T.closest('a[data-xs]');if(xa){doSearch(true);return}
  const nd=T.closest('[data-sel]');if(nd){selStop(+nd.dataset.sel,true);return}
  const tb=T.closest('.tb button');if(tb){document.execCommand(tb.dataset.cmd,false,tb.dataset.val||null);return}
- const el=T.closest('button,a,[data-act],[data-d],[data-pick],[data-card-dests],[data-hd-more],[data-pop-dest]');if(!el||el.tagName==='A')return;const D=el.dataset;
- if(D.cardDests){e.preventDefault();e.stopPropagation();const p=P.find(x=>x.id===D.cardDests);openDestinationPopover(el,p,'card');return}
+ const el=T.closest('button,a,[data-act],[data-d],[data-pick],[data-card-dests],[data-route-dests],[data-hd-more],[data-pop-dest]');if(!el||el.tagName==='A')return;const D=el.dataset;
+ if(D.cardDests||D.routeDests){
+  e.preventDefault();e.stopPropagation();
+  if(!supportsDestinationHover()){
+   const id=D.cardDests||D.routeDests,p=P.find(x=>x.id===id);
+   if(p)openDestinationPopover(el,p,'card');
+  }
+  return;
+ }
  if(D.hdMore){e.preventDefault();e.stopPropagation();const p=P.find(x=>x.id===D.hdMore);openDestinationPopover(el,p,'hero');return}
  if(D.popDest!==undefined){e.preventDefault();e.stopPropagation();const p=P.find(x=>x.id===D.popPlan);if(p){U.pid=p.id;U.xp=p.id;U.hd=+D.popDest;renderHome()}closeDestinationPopover();return}
  if(D.close!==undefined){if($('#mbody').classList.contains('personal-gate'))return;closeM();return}
@@ -1891,6 +1930,28 @@ document.addEventListener('keydown',e=>{
  const n=e.target.closest&&e.target.closest('[data-sel]');if(n&&(e.key==='Enter'||e.key===' ')){e.preventDefault();selStop(+n.dataset.sel,true)}
  const c=e.target.closest&&e.target.closest('[data-d]');if(c&&(e.key==='Enter'||e.key===' ')){e.preventDefault();c.click()}
  const g=e.target.closest&&e.target.closest('g[data-act]');if(g&&(e.key==='Enter'||e.key===' ')){e.preventDefault();act(g.dataset.act,g.dataset)}});
+document.addEventListener('mouseover',e=>{
+ if(!supportsDestinationHover())return;
+ const trigger=e.target.closest&&e.target.closest('[data-card-dests],[data-route-dests]');
+ if(trigger){
+  if(e.relatedTarget&&trigger.contains(e.relatedTarget))return;
+  clearTimeout(destPopoverCloseTimer);
+  const id=trigger.dataset.cardDests||trigger.dataset.routeDests,p=P.find(x=>x.id===id);
+  if(p){const key='card-'+p.id,opened=$('#dest-popover');if(!opened||opened.dataset.anchor!==key)openDestinationPopover(trigger,p,'card');}
+  return;
+ }
+ if(e.target.closest&&e.target.closest('#dest-popover'))clearTimeout(destPopoverCloseTimer);
+});
+document.addEventListener('mouseout',e=>{
+ if(!supportsDestinationHover())return;
+ const trigger=e.target.closest&&e.target.closest('[data-card-dests],[data-route-dests]');
+ const pop=e.target.closest&&e.target.closest('#dest-popover');
+ if(!trigger&&!pop)return;
+ const next=e.relatedTarget;
+ if(next&&next.closest&& (next.closest('[data-card-dests],[data-route-dests]')||next.closest('#dest-popover')))return;
+ if(trigger&&next&&trigger.contains(next))return;
+ clearTimeout(destPopoverCloseTimer);destPopoverCloseTimer=setTimeout(closeDestinationPopover,180);
+});
 let lh=-2;
 document.addEventListener('mouseover',e=>{const T=e.target;if(!T.closest)return;
  const n=T.closest('[data-sel],[data-si]'),i=n?+(n.dataset.sel??n.dataset.si):-1;
