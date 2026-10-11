@@ -1,7 +1,6 @@
-# Plyt update — Personal Space isolation and mobile Home overflow
+# Plyt Budget member alignment
 
-- Switching users syncs the current Personal Space first, then clears the active local view without deleting cloud data.
-- Creating a new Personal Space starts empty by default. Importing local plans is an explicit, unchecked-by-default option shown only when local plans exist.
-- The profile modal's “Switch user / personal space” action is left-aligned and vertically spaced consistently.
-- Mobile Home shows at most two plan cards plus a `+N` overflow card; tapping it opens a chooser for remaining plans. The existing top `+` button remains the way to create a plan.
-- Firebase collection layout and shared-plan invite behavior are unchanged.
+- Budget participant selectors and balance rows now use the Plan roster (plan owner + travel-mates).
+- Existing legacy expense/payment participants are promoted once into the Plan travel-mate list so previous financial calculations are preserved rather than silently dropping old people/amounts. Their labels are normalized to the canonical plan-member name.
+- A member cannot be removed from the plan while existing expenses, custom splits, or settlements still refer to them. Reassign/edit/delete those Budget records first.
+- Applied to both `index.html` and `m.html`; Firebase schema, Personal Space and Join Plan flow are unchanged.

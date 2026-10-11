@@ -1082,6 +1082,29 @@ button.dest-pop-item{cursor:pointer}
   #home .pcard.more-plans small{font-size:11px;color:var(--muted);font-weight:500}
 }
 
+
+/* Join Plan summary and identity onboarding */
+.panel .join-plan-summary{display:flex;flex-direction:column;gap:12px;margin:14px 0 16px;min-width:0}
+.panel .join-plan-description{margin:0;padding:12px 14px;background:var(--bg);border:1px solid var(--line);border-radius:14px;line-height:1.45;color:var(--ink)}
+.panel .join-plan-facts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.panel .join-plan-facts>div{display:flex;flex-direction:column;gap:4px;min-width:0;padding:10px 12px;background:var(--bg);border-radius:12px}
+.panel .join-plan-facts span,.panel .join-plan-owner>span{font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.panel .join-plan-facts b{font-size:13px;line-height:1.4;overflow-wrap:anywhere}
+.panel .join-plan-owner{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px;border:1px solid var(--line);border-radius:12px}
+.panel .join-plan-owner b{font-size:14px;text-align:right;overflow-wrap:anywhere}
+.panel .join-plan-members{display:flex;flex-direction:column;gap:8px}
+.panel .join-member-list{display:flex;flex-wrap:wrap;gap:7px}
+.panel .join-member-chip{display:inline-flex;align-items:center;max-width:100%;padding:7px 10px;border-radius:999px;background:var(--bg);border:1px solid var(--line);font-size:12px;font-weight:700;overflow-wrap:anywhere}
+.panel .join-member-chip.owner{background:var(--pink-wash,var(--bg));border-color:var(--pink)}
+.panel .join-entry-help{margin:12px 0}
+.panel .join-entry-actions{display:flex;flex-wrap:wrap;gap:9px;margin:12px 0 4px}
+.panel .join-entry-actions button{flex:1 1 190px;min-height:42px;white-space:normal}
+.panel .join-already{margin:12px 0;padding:10px 12px;background:var(--bg);border-radius:12px;font-weight:800}
+.panel .join-as{margin:12px 0}
+.panel .gate-generate{width:100%;margin:0 0 12px}
+.panel .gate-code-help{margin-top:8px;line-height:1.45}
+@media(max-width:520px){.panel .join-plan-summary{gap:10px}.panel .join-plan-facts{gap:7px}.panel .join-plan-facts>div{padding:9px 10px}.panel .join-entry-actions{flex-direction:column}.panel .join-entry-actions button{width:100%;flex-basis:auto}}
+
 </style>
 </head>
 <body>
@@ -1484,6 +1507,7 @@ function renderCal(){
  $('#clist').innerHTML=SP().map(p=>`<div class="crow2"><button class="crow" data-pid="${p.id}" data-go="plan"><i class="sw" style="background:${p.color}"></i><div><b>${esc(p.name)}</b><span>${fm(p.start)} \u2013 ${fm(p.end)} | ${p.dests.map(d=>esc(d.name)).join(', ')} | ${p.mates.length?'with '+p.mates.map(esc).join(', '):'solo'}</span></div></button><button class="ico" data-editp="${p.id}" aria-label="Edit plan">${IC.edit}</button></div>`).join('')}
 function render(){
  if(!P.length){renderEmptyApp();return}
+ let budgetRosterMigrated=false;P.forEach(p=>{if(migrateLegacyBudgetMembers(p))budgetRosterMigrated=true});if(budgetRosterMigrated)save();
  closeDestinationPopover();
  $('#hero').classList.remove('is-empty');$('#pills').hidden=false;
  $$('nav.tabs button[data-go]').forEach(b=>{b.disabled=false;b.removeAttribute('aria-disabled')});
@@ -1529,8 +1553,11 @@ function openPlan(o){
   if(!st||!en||en<st){bad('#pend');toast('End date must be after the start date');return false}
   const dn=ed?[]:$$('#dch [data-dc]').map(b=>b.dataset.v),pend=($('#dnew')||{}).value;if(pend&&pend.trim())dn.push(pend.trim());
   if(!ed&&!dn.length){bad('#dnew');toast('Add at least one destination');return false}
-  const mates=$$('#mch .mc.on').map(b=>b.dataset.v),mn=$('#mnew').value.trim();if(mn&&!mates.includes(mn))mates.push(mn);
-  const allm=$$('#mch .mc').map(b=>b.dataset.v);if(mn&&!allm.includes(mn))allm.push(mn);const gone=KM.filter(x=>!allm.includes(x));KM=allm;if(gone.length)P.forEach(pl=>{pl.mates=pl.mates.filter(x=>!gone.includes(x))});
+  const mates=$$('#mch .mc.on').map(b=>b.dataset.v),mn=$('#mnew').value.trim();if(mn&&!mates.some(x=>budgetNameKey(x)===budgetNameKey(mn)))mates.push(mn);
+  if(ed){const locked=ed.mates.filter(old=>!mates.some(n=>budgetNameKey(n)===budgetNameKey(old))&&hasBudgetReferences(ed,old));if(locked.length){toast('Before removing '+locked.join(', ')+', update or delete their expense/payment records in Budget first.');return false;}}
+  const allm=$$('#mch .mc').map(b=>b.dataset.v);if(mn&&!allm.some(x=>budgetNameKey(x)===budgetNameKey(mn)))allm.push(mn);const gone=KM.filter(x=>!allm.some(y=>budgetNameKey(y)===budgetNameKey(x)));
+  const lockedGlobal=gone.filter(n=>P.some(pl=>pl.mates.some(m=>budgetNameKey(m)===budgetNameKey(n))&&hasBudgetReferences(pl,n)));if(lockedGlobal.length){toast('Cannot remove '+lockedGlobal.join(', ')+' from your mate list while Budget records still reference them.');return false;}
+  KM=allm;if(gone.length)P.forEach(pl=>{pl.mates=pl.mates.filter(x=>!gone.some(n=>budgetNameKey(n)===budgetNameKey(x)))});
   const v={name,start:st,end:en,note:$('#pnote').value.trim(),mates,color:swv('pc')||COL[0]};
   if(ed)Object.assign(ed,v);else{
    const D=diff(st,en)+1;let off=0;
@@ -1591,14 +1618,38 @@ function openDay(o){
 function openHist(id){const h=H.find(x=>x.id===id);if(!h)return;modal('Edit search',F('Place or search',`<input id="hn" value="${esc(h.n)}" aria-label="Name">`)+F('Note',`<input id="hs" value="${esc(h.s)}" aria-label="Note">`),{label:'Save',del:()=>ask('Remove this from your history?',()=>{H=H.filter(x=>x!==h);renderExplore()}),save:()=>{const v=$('#hn').value.trim();if(!v){bad('#hn');return false}h.n=v;h.s=$('#hs').value.trim()||'Searched';renderExplore();return true}})}
 /* ---------- budget ---------- */
 const money=(n,c)=>{const v=Math.abs(n)<1e-9?0:n;return(c==='\u20ab'?Math.round(v):Math.round(v*100)/100).toLocaleString('en-US')+' '+c};
-const ppl=p=>{const s=[p.owner||ME,...p.mates];p.bud.exp.forEach(e=>{s.push(e.by,...e.sp)});p.bud.set.forEach(x=>s.push(x.from,x.to));return[...new Set(s)]};
+function budgetNameKey(v){return String(v||'').normalize('NFC').replace(/\s+/g,' ').trim().toLowerCase()}
+function planBudgetMembers(p){const out=[],seen=new Set();[p.owner||ME,...(Array.isArray(p.mates)?p.mates:[])].forEach(n=>{n=String(n||'').trim();const k=budgetNameKey(n);if(k&&!seen.has(k)){seen.add(k);out.push(n)}});return out}
+function migrateLegacyBudgetMembers(p){
+ if(!p||!p.bud)return false;
+ p.mates=Array.isArray(p.mates)?p.mates:[];p.bud.exp=Array.isArray(p.bud.exp)?p.bud.exp:[];p.bud.set=Array.isArray(p.bud.set)?p.bud.set:[];
+ const known=new Set(planBudgetMembers(p).map(budgetNameKey));let changed=false;
+ // One-time compatibility migration: old versions allowed names to be added from Budget alone.
+ // Promote those existing transaction participants into Plan members so historic totals remain correct.
+ const refs=[];p.bud.exp.forEach(e=>{refs.push(e.by,...(Array.isArray(e.sp)?e.sp:[]),...Object.keys(e.ex||{}))});p.bud.set.forEach(s=>refs.push(s.from,s.to));
+ refs.forEach(n=>{n=String(n||'').trim();const k=budgetNameKey(n);if(k&&!known.has(k)){p.mates.push(n);known.add(k);if(!KM.some(x=>budgetNameKey(x)===k))KM.push(n);changed=true}});
+ // Align legacy casing to the canonical member label so balances never split one person into two rows.
+ const canonical=new Map(planBudgetMembers(p).map(n=>[budgetNameKey(n),n]));
+ p.bud.exp.forEach(e=>{
+  const by=canonical.get(budgetNameKey(e.by));if(by&&by!==e.by){e.by=by;changed=true;}
+  const prior=Array.isArray(e.sp)?e.sp:[],next=[...new Set(prior.map(n=>canonical.get(budgetNameKey(n))||n))];
+  if(JSON.stringify(prior)!==JSON.stringify(next)){e.sp=next;changed=true;}
+  if(e.ex&&typeof e.ex==='object'){const x={};Object.entries(e.ex).forEach(([n,v])=>{const k=canonical.get(budgetNameKey(n))||n;x[k]=(x[k]||0)+(+v||0)});if(JSON.stringify(x)!==JSON.stringify(e.ex)){e.ex=x;changed=true;}}
+ });
+ p.bud.set.forEach(s=>{const f=canonical.get(budgetNameKey(s.from)),t=canonical.get(budgetNameKey(s.to));if(f&&f!==s.from){s.from=f;changed=true;}if(t&&t!==s.to){s.to=t;changed=true;}});
+ return changed;
+}
+function hasBudgetReferences(p,name){const k=budgetNameKey(name);if(!p||!p.bud||!k)return false;
+ return (p.bud.exp||[]).some(e=>budgetNameKey(e.by)===k||(e.sp||[]).some(n=>budgetNameKey(n)===k)||Object.keys(e.ex||{}).some(n=>budgetNameKey(n)===k))||(p.bud.set||[]).some(s=>budgetNameKey(s.from)===k||budgetNameKey(s.to)===k);
+}
+const ppl=p=>planBudgetMembers(p);
 const sharesOf=e=>{const o={};if(e.mode==='ex')e.sp.forEach(n=>o[n]=+e.ex[n]||0);else{const k=e.sp.length||1;e.sp.forEach(n=>o[n]=e.amt/k)}return o};
 const cc=k=>CATS.find(x=>x[0]===k)||CATS[5];
 const findExp=id=>{for(const p of P){const e=p.bud.exp.find(x=>x.id===id);if(e)return{p,e}}return null};
 function calc(p){const b={};ppl(p).forEach(n=>b[n]={paid:0,share:0,net:0});let spent=0;
- p.bud.exp.forEach(e=>{spent+=e.amt;b[e.by].paid+=e.amt;const s=sharesOf(e);for(const n in s)b[n].share+=s[n]});
+ p.bud.exp.forEach(e=>{spent+=(+e.amt||0);if(b[e.by])b[e.by].paid+=(+e.amt||0);const s=sharesOf(e);for(const n in s)if(b[n])b[n].share+=s[n]});
  for(const n in b)b[n].net=b[n].paid-b[n].share;
- p.bud.set.forEach(x=>{b[x.from].net+=x.amt;b[x.to].net-=x.amt});
+ p.bud.set.forEach(x=>{if(b[x.from])b[x.from].net+=x.amt;if(b[x.to])b[x.to].net-=x.amt});
  return{b,spent}}
 function suggest(b){const cr=[],db=[];for(const n in b){if(b[n].net>.5)cr.push([n,b[n].net]);else if(b[n].net<-.5)db.push([n,-b[n].net])}
  cr.sort((x,y)=>y[1]-x[1]);db.sort((x,y)=>y[1]-x[1]);const out=[];let i=0,j=0;
@@ -1666,14 +1717,15 @@ if(!CL.p)CL.p=CLOUD_DEFAULT.p;if(!CL.k)CL.k=CLOUD_DEFAULT.k;
 const saveCL=()=>{try{localStorage.setItem('plyt-cloud',JSON.stringify(CL))}catch(e){}};
 // A personal space is protected by a high-entropy access code, not by the display name.
 const SPACE_KEY='plyt-personal-space-session';
-let SPACE={active:false,code:'',name:'',base:'',rev:0,t:'',busy:false,timer:0};
+let SPACE={active:false,code:'',uid:'',name:'',base:'',rev:0,t:'',busy:false,timer:0};
 const readSpaceSession=()=>{try{return JSON.parse(localStorage.getItem(SPACE_KEY)||'null')}catch(e){return null}};
-const saveSpaceSession=()=>{try{localStorage.setItem(SPACE_KEY,JSON.stringify({code:SPACE.code,name:SPACE.name}))}catch(e){}};
+const saveSpaceSession=()=>{try{localStorage.setItem(SPACE_KEY,JSON.stringify({code:SPACE.code,uid:SPACE.uid,name:SPACE.name}))}catch(e){}};
 const clearSpaceSession=()=>{try{localStorage.removeItem(SPACE_KEY)}catch(e){}};
 const cleanAccessCode=v=>String(v||'').toUpperCase().replace(/[^A-HJ-NP-Z2-9]/g,'');
 const prettyAccessCode=v=>cleanAccessCode(v).match(/.{1,4}/g)?.join('-')||'';
 const spaceNameKey=v=>String(v||'').normalize('NFC').replace(/\s+/g,' ').trim().toLowerCase();
 const makeAccessCode=()=>{const chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',a=new Uint8Array(20);crypto.getRandomValues(a);return Array.from(a,x=>chars[x%32]).join('')};
+const makeSpaceUid=()=>{const a=new Uint8Array(16);crypto.getRandomValues(a);return Array.from(a,x=>x.toString(16).padStart(2,'0')).join('')};
 const cloudOn=()=>!!(CL.p&&CL.k);
 const BUSY=new Set(),STM=new Map();let lastAct=Date.now();
 ['pointerdown','keydown'].forEach(ev=>document.addEventListener(ev,()=>{lastAct=Date.now()},true));
@@ -1702,7 +1754,7 @@ async function fsPut(c,d,r,pre){const x=await fetch(fsUrl(c,pre),{method:'PATCH'
 const personalUrl=(code,q)=>`https://firestore.googleapis.com/v1/projects/${encodeURIComponent(CL.p)}/databases/(default)/documents/personalSpaces/${encodeURIComponent(code)}?key=${encodeURIComponent(CL.k)}${q?'&'+q:''}`;
 async function personalGet(code){const r=await fetch(personalUrl(code));if(r.status===404)return null;if(!r.ok)throw new Error('HTTP '+r.status);const j=await r.json(),f=j.fields||{};return{d:f.d?f.d.stringValue:'',r:f.r?+f.r.integerValue:0,t:j.updateTime};}
 async function personalPut(code,d,r,pre){if(d.length>900000)throw new Error('This personal space is too large for one Firestore document (900 KB limit). Remove unused plans or large notes and retry.');const x=await fetch(personalUrl(code,pre),{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({fields:{d:{stringValue:d},r:{integerValue:String(r)},u:{integerValue:String(Date.now())}}})});if(x.ok){let j={};try{j=await x.json()}catch(e){}return{ok:true,t:j.updateTime};}if([409,412].includes(x.status))return{conflict:true};let detail='';try{detail=(await x.json()).error?.message||''}catch(e){}throw new Error('HTTP '+x.status+(detail?': '+detail:''));}
-function personalSnapshot(name){return JSON.stringify({v:1,name:String(name||SPACE.name||ME||'').trim(),plans:P.map(p=>p.sync&&p.sync.code?{id:p.id,shareCode:p.sync.code}:{id:p.id,shareCode:'',plan:strip(p)}),H:H||[],KM:KM||[]});}
+function personalSnapshot(name,uid){return JSON.stringify({v:1,uid:String(uid||SPACE.uid||''),name:String(name||SPACE.name||ME||'').trim(),plans:P.map(p=>p.sync&&p.sync.code?{id:p.id,shareCode:p.sync.code}:{id:p.id,shareCode:'',plan:strip(p)}),H:H||[],KM:KM||[]});}
 function mergePlanImages(plan,old){if(!old||!plan)return plan;const imgs={};(old.dests||[]).forEach(d=>(d.stops||[]).forEach(t=>{if(t.img)imgs[t.id]=t.img}));(plan.dests||[]).forEach(d=>(d.stops||[]).forEach(t=>{if(imgs[t.id])t.img=imgs[t.id]}));return plan;}
 async function inflatePersonalSnapshot(data,code){SPACE.name=String(data.name||SPACE.name||ME||'').trim();SPACE.code=code;const old=new Map((P||[]).map(p=>[p.id,p])),plans=[];for(const item of (data.plans||[])){if(item.shareCode){const rem=await fsGet(item.shareCode);if(!rem)throw new Error('A shared plan in your space could not be found. Check its invite code and Firestore Rules.');const raw=JSON.parse(rem.d),prev=old.get(raw.id)||old.get(item.id);const plan=mergePlanImages(Object.assign({},raw,{sync:{code:item.shareCode,rev:rem.r,base:rem.d,at:Date.now(),err:''}}),prev);plans.push(plan);}else if(item.plan){const plan=JSON.parse(JSON.stringify(item.plan));plans.push(mergePlanImages(plan,old.get(plan.id)));}}
  P=plans;H=Array.isArray(data.H)?data.H:[];KM=Array.isArray(data.KM)?data.KM:[...new Set(P.flatMap(p=>p.mates||[]))];ME=String(data.name||ME||'').trim();try{localStorage.setItem('plyt-me',ME)}catch(e){};
@@ -1716,47 +1768,47 @@ async function syncPersonalSpace(){if(!SPACE.active||!cloudOn()||SPACE.busy)retu
  if(!ok)throw new Error('Your plans changed on another device at the same time. Please wait a moment and retry.');
  }finally{SPACE.busy=false;}if(ok&&SPACE.active&&personalSnapshot()!==SPACE.base)schedulePersonalSync();}
 function personalErrorText(e){const m=String(e&&e.message||e);if(m.includes('HTTP 403'))return 'Firebase denied access. Publish the updated firestore.rules that includes /personalSpaces before using personal access codes.';if(m.includes('HTTP 404'))return 'Personal space not found. Check both your name and access code.';return m;}
-function openPersonalGate(message){const sess=readSpaceSession();modal('Your Plyt space',`<p class="muted">Enter your name and personal access code to open your plans on any device. New here? Create a personal space and Plyt will generate a unique code for you.</p>${message?`<p class="jmsg err" id="spacemsg">${esc(message)}</p>`:`<p class="jmsg" id="spacemsg" role="status"></p>`}${F('Your name',`<input id="spaceName" maxlength=40 placeholder="Enter your name" autocomplete="name" value="${esc(sess&&sess.name||'')}" aria-label="Your name">`)}${F('Personal access code',`<input id="spaceCode" maxlength=24 placeholder="XXXX-XXXX-XXXX-XXXX-XXXX" autocomplete="off" autocapitalize="characters" value="${esc(sess&&sess.code?prettyAccessCode(sess.code):'')}" aria-label="Personal access code">`)}<div class="access-actions"><button type="button" class="mini" data-act="createspace">Create new personal space</button><button type="button" class="ghost" data-act="joinfromgate">Join a friend’s plan</button></div>${P.length?`<div class="space-import-choice"><label><input type="checkbox" id="spaceImportLocalPlans"> Import ${P.length} local plan${P.length===1?'':'s'} into this new space</label><p>Optional. Leave unchecked to start empty. Select this only if the plans currently saved in this browser belong to you and should be copied into this new space.</p></div>`:''}`,{label:'Open my plans',nofocus:1,save:()=>{openExistingPersonalSpaceFromGate();return false;}});$('#mbody').classList.add('personal-gate');}
-async function openExistingPersonalSpaceFromGate(){const name=$('#spaceName').value.trim(),code=cleanAccessCode($('#spaceCode').value),msg=$('#spacemsg'),btn=$('#msave');if(!name||name.length>40){msg.textContent='Enter your name (up to 40 characters).';msg.className='jmsg err';return;}if(!/^[A-HJ-NP-Z2-9]{20}$/.test(code)){msg.textContent='Enter the full 20-character access code.';msg.className='jmsg err';return;}btn.disabled=true;msg.textContent='Checking your personal space…';msg.className='jmsg';try{const rec=await personalGet(code);if(!rec){msg.textContent='Name or access code is incorrect. Check both and try again.';msg.className='jmsg err';return;}const data=JSON.parse(rec.d);if(spaceNameKey(name)!==spaceNameKey(data.name)){msg.textContent='Name or access code is incorrect. Check both and try again.';msg.className='jmsg err';return;}await activatePersonalSpace(code,data,rec);closeM();render();toast('Welcome back, '+data.name);if(personalSnapshot()!==SPACE.base)schedulePersonalSync();}catch(e){msg.textContent=personalErrorText(e);msg.className='jmsg err';}finally{if($('#msave'))$('#msave').disabled=false;}}
-async function createPersonalSpaceFromGate(){
+function openPersonalGate(message){
+ const sess=readSpaceSession();
+ const importChoice=P.length?`<div class="space-import-choice"><label><input type="checkbox" id="spaceImportLocalPlans"> Import ${P.length} local plan${P.length===1?'':'s'} into this new space</label><p>Optional. Leave unchecked to start empty. Select this only if these browser-only plans belong to you and should be copied into your new space.</p></div>`:'';
+ modal('Your Plyt space',`<p class="muted">Use your name and personal access code to open your plans on any device. New to Plyt? Enter your name, generate a new code, then save both somewhere private.</p>${message?`<p class="jmsg err" id="spacemsg">${esc(message)}</p>`:`<p class="jmsg" id="spacemsg" role="status"></p>`}${F('Your name',`<input id="spaceName" maxlength="40" placeholder="Enter your name" autocomplete="name" value="${esc(sess&&sess.name||'')}" aria-label="Your name">`)}<button type="button" class="mini gate-generate" data-act="generategatecode">Generate Your New Access Code</button>${F('Personal access code',`<div class="access-code-box"><input id="spaceCode" maxlength="24" placeholder="Enter saved code or generate one above" autocomplete="off" autocapitalize="characters" value="${esc(sess&&sess.code?prettyAccessCode(sess.code):'')}" aria-label="Personal access code"><button type="button" class="mini" data-act="copygatecode">Copy code</button></div>`)}<p class="muted gate-code-help" id="spacecodehelp">Already have a Plyt Space? Enter its saved code above and choose Open my plans. New here? Generate a code first.</p>${importChoice}<div class="access-actions"><button type="button" class="ghost" data-act="joinfromgate">Join a friend’s plan</button></div>`,{label:'Open my plans',nofocus:1,save:()=>{if($('#spaceCode')?.dataset.generatedCode){createPersonalSpaceFromGate();return false;}openExistingPersonalSpaceFromGate();return false;}});
+ $('#mbody').classList.add('personal-gate');
+ const codeField=$('#spaceCode');if(codeField)codeField.addEventListener('input',()=>{delete codeField.dataset.generatedCode;const b=$('#msave');if(b)b.textContent='Open my plans';const h=$('#spacecodehelp');if(h)h.textContent='Already have a Plyt Space? Enter its saved code above and choose Open my plans. New here? Generate a code first.';});
+}
+function generateGateAccessCode(){
  const name=$('#spaceName').value.trim(),msg=$('#spacemsg');
+ if(!name||name.length>40){msg.textContent='Enter your name (up to 40 characters) before generating a code.';msg.className='jmsg err';$('#spaceName').focus();return;}
+ const code=makeAccessCode(),field=$('#spaceCode');field.value=prettyAccessCode(code);field.dataset.generatedCode=code;
+ const btn=$('#msave');if(btn)btn.textContent='Complete my new Plyt Space';
+ const help=$('#spacecodehelp');if(help)help.textContent='Your code is ready. Copy both your name and this code to a private place, such as a password manager. Anyone with this code can access your space.';
+ msg.textContent='New access code generated. Save your name and code, then complete your Plyt Space.';msg.className='jmsg ok';
+}
+async function copyGateAccessCode(){const v=cleanAccessCode($('#spaceCode')?.value||'');if(!v){toast('Enter or generate an access code first');return;}toast(await copyText(prettyAccessCode(v))?'Access code copied':'Could not copy the access code');}
+async function openExistingPersonalSpaceFromGate(){const name=$('#spaceName').value.trim(),code=cleanAccessCode($('#spaceCode').value),msg=$('#spacemsg'),btn=$('#msave');if(!name||name.length>40){msg.textContent='Enter your name (up to 40 characters).';msg.className='jmsg err';return;}if(!/^[A-HJ-NP-Z2-9]{20}$/.test(code)){msg.textContent='Enter the full 20-character access code.';msg.className='jmsg err';return;}if(btn)btn.disabled=true;msg.textContent='Checking your personal space…';msg.className='jmsg';try{const rec=await personalGet(code);if(!rec){msg.textContent='Name or access code is incorrect. Check both and try again.';msg.className='jmsg err';return;}const data=JSON.parse(rec.d);if(spaceNameKey(name)!==spaceNameKey(data.name)){msg.textContent='Name or access code is incorrect. Check both and try again.';msg.className='jmsg err';return;}await activatePersonalSpace(code,data,rec);closeM();render();toast('Welcome back, '+data.name);if(personalSnapshot()!==SPACE.base)schedulePersonalSync();}catch(e){msg.textContent=personalErrorText(e);msg.className='jmsg err';}finally{if($('#msave'))$('#msave').disabled=false;}}
+async function createPersonalSpaceFromGate(){
+ const name=$('#spaceName').value.trim(),msg=$('#spacemsg'),code=cleanAccessCode($('#spaceCode').dataset.generatedCode||'');
  if(!name||name.length>40){msg.textContent='Enter your name (up to 40 characters) before creating your space.';msg.className='jmsg err';$('#spaceName').focus();return;}
+ if(!/^[A-HJ-NP-Z2-9]{20}$/.test(code)||code!==cleanAccessCode($('#spaceCode').value)){msg.textContent='Generate a new access code before completing your new Plyt Space.';msg.className='jmsg err';return;}
  if(!cloudOn()){msg.textContent='Firebase is not configured on this app. Open Cloud sync settings first.';msg.className='jmsg err';return;}
  const migrate=!!$('#spaceImportLocalPlans')?.checked;
  const previous={P,H,KM,ME,PME,U:{...U},owners:P.map(p=>p.owner)};
- const button=$$('#mbody [data-act=createspace]')[0];if(button)button.disabled=true;
- msg.textContent=migrate?'Creating your personal space and importing local plans…':'Creating an empty personal space…';msg.className='jmsg';
+ const button=$('#msave');if(button)button.disabled=true;
+ msg.textContent=migrate?'Creating your Plyt Space and importing local plans…':'Creating an empty Plyt Space…';msg.className='jmsg';
  try{
   if(!migrate){P=[];H=[];KM=[];PME={};savePME();U.pid=null;U.xp=null;U.did=null;U.day=0;U.sel=0;U.hd=0;U.a=null;U.b=null;}
-  setMe(name);
-  if(migrate)P.forEach(p=>{if(!p.owner)p.owner=name});
-  let made=null;
-  for(let tries=0;tries<3;tries++){
-   const code=makeAccessCode(),d=personalSnapshot(name);
-   const res=await personalPut(code,d,1,'currentDocument.exists=false');
-   if(res.conflict)continue;made={code,d,res};break;
-  }
-  if(!made)throw new Error('Could not generate a unique access code. Please retry.');
-  SPACE={active:true,code:made.code,name,base:made.d,rev:1,t:made.res.t||'',busy:false,timer:0};
-  saveSpaceSession();closeM();save();render();showNewPersonalCode(made.code,name,migrate?previous.P.length:0);
+  setMe(name);if(migrate)P.forEach(p=>{if(!p.owner)p.owner=name});
+  const uid=makeSpaceUid(),d=personalSnapshot(name,uid),res=await personalPut(code,d,1,'currentDocument.exists=false');
+  if(res.conflict)throw new Error('This generated code already exists. Generate another code and try again.');
+  SPACE={active:true,code,uid,name,base:d,rev:1,t:res.t||'',busy:false,timer:0};saveSpaceSession();closeM();save();render();showNewPersonalCode(code,name,migrate?previous.P.length:0);
  }catch(e){
   P=previous.P;H=previous.H;KM=previous.KM;PME=previous.PME;previous.P.forEach((p,i)=>{p.owner=previous.owners[i]});Object.assign(U,previous.U);setMe(previous.ME);savePME();save();
-  msg.textContent=personalErrorText(e);msg.className='jmsg err';render();
- }finally{if(button&&button.isConnected)button.disabled=false;}
+  msg.textContent=personalErrorText(e);msg.className='jmsg err';
+ }finally{if($('#msave'))$('#msave').disabled=false;}
 }
-async function activatePersonalSpace(code,data,rec){SPACE={active:false,code,name:String(data.name||''),base:rec.d,rev:rec.r,t:rec.t||'',busy:false,timer:0};await inflatePersonalSnapshot(data,code);SPACE.active=true;saveSpaceSession();}
-function showNewPersonalCode(code,name,migratedCount=0){modal('Your personal access code',`<p class="muted">Save this code somewhere safe. On another device, enter both <b>${esc(name)}</b> and this code to open your plans. Anyone with this code can access your personal space. Plyt cannot recover it if you lose it.</p><div class="access-code-box"><input id="shownSpaceCode" readonly value="${esc(prettyAccessCode(code))}" aria-label="Your access code"><button type="button" class="mini" data-act="copyspacecode">Copy code</button></div><p class="muted">${migratedCount?`Imported ${migratedCount} existing plan${migratedCount===1?'':'s'} from this browser.`:'Your new personal space starts empty. Create your own plan or join a friend’s shared plan when you are ready.'} Shared plans continue to use their existing invite links.</p>`,{label:'I have saved my code',nofocus:1,save:()=>{render();return true;}});}
-async function copyPersonalCode(){const code=SPACE.code||((readSpaceSession()||{}).code)||'';if(!code){toast('No personal access code is available');return;}toast(await copyText(prettyAccessCode(code))?'Personal access code copied':'Could not copy the code');}
-async function switchPersonalSpace(){
- if(SPACE.busy){toast('Personal-space sync is still running. Try again in a moment.');return;}
- clearTimeout(SPACE.timer);
- try{if(SPACE.active)await syncPersonalSpace();}catch(e){toast('Could not sync before switching: '+(e.message||e));return;}
- // The old space has been synced to Firestore. Clear only the active browser view; do not delete cloud documents.
- SPACE={active:false,code:'',name:'',base:'',rev:0,t:'',busy:false,timer:0};clearSpaceSession();
- P=[];H=[];KM=[];PME={};savePME();setMe('');
- U.pid=null;U.xp=null;U.did=null;U.day=0;U.sel=0;U.hd=0;U.a=null;U.b=null;U.zoom=null;
- save();closeM();render();openPersonalGate();
-}
+
+async function activatePersonalSpace(code,data,rec){SPACE={active:false,code,uid:String(data.uid||makeSpaceUid()),name:String(data.name||''),base:rec.d,rev:rec.r,t:rec.t||'',busy:false,timer:0};await inflatePersonalSnapshot(data,code);SPACE.active=true;saveSpaceSession();}
+function showNewPersonalCode(code,name,migratedCount=0,afterSave=null){modal('Your personal access code',`<p class="muted">Save this code somewhere safe. On another device, enter both <b>${esc(name)}</b> and this code to open your plans. Anyone with this code can access your personal space. Plyt cannot recover it if you lose it.</p><div class="access-code-box"><input id="shownSpaceCode" readonly value="${esc(prettyAccessCode(code))}" aria-label="Your access code"><button type="button" class="mini" data-act="copyspacecode">Copy code</button></div><p class="muted">${migratedCount?`Imported ${migratedCount} existing plan${migratedCount===1?'':'s'} from this browser.`:'Your new personal space starts empty. Create your own plan or join a friend’s shared plan when you are ready.'} Shared plans continue to use their existing invite links.</p>${afterSave?'<p class="muted">After saving your access code, you will continue to review the shared plan and choose Join Plan.</p>':''}`,{label:afterSave?'I have saved my code — continue':'I have saved my code',nofocus:1,save:()=>{if(afterSave){closeM();render();afterSave();return false;}render();return true;}});}
+
 async function bootPersonalSpace(){const sess=readSpaceSession();if(sess&&sess.code){modal('Opening your plans','<p class="muted">Loading your personal space from Firebase…</p>',{nofocus:1});try{const rec=await personalGet(cleanAccessCode(sess.code));if(!rec)throw new Error('Personal space not found. Enter your name and access code again.');const data=JSON.parse(rec.d);await activatePersonalSpace(cleanAccessCode(sess.code),data,rec);closeM();render();if(personalSnapshot()!==SPACE.base)schedulePersonalSync();}catch(e){closeM();openPersonalGate(personalErrorText(e));}}else openPersonalGate(P.length?'This browser has local plans that are not linked to a personal access code yet. Create a new space here to migrate them.':'');}
 function bootApp(){const incoming=/^#(join|plan)=/.test(location.hash||'');const sess=readSpaceSession();if(sess&&sess.code){bootPersonalSpace().then(()=>{if(incoming){if($('#mbody').classList.contains('personal-gate'))closeM();handleHash();}});}else if(incoming){handleHash();}else openPersonalGate(P.length?'This browser has local plans that are not linked to a personal access code yet. Create a new space here to migrate them.':'');}
 
@@ -1798,7 +1850,7 @@ function openSharePlan(){
  else live=`<div class="linkrow"><input id="slink" readonly value="${esc(link)}" aria-label="Invite link"><button class="mini" data-act="copylink">Copy</button><button class="mini" data-act="nativeshare">${IC.share} Share</button></div><p class="muted">${esc(syncLabel(p))}</p><div class="ba wrap"><button class="mini" data-act="syncnow">Sync now</button><button class="mini" data-act="cloud">Cloud settings</button><button class="mini" data-act="stopshare">Stop sharing</button></div>`;
  const inv=p.mates.length?p.mates.map((m,i)=>`<div class="inv"><span>${mav(m,i)}${esc(m)}</span><button class="mini" data-invite="${esc(m)}"${s?'':' disabled'}>Copy invite</button></div>`).join(''):'<p class="muted">No travel-mates yet \u2013 add them in the Plan page, then invite them here.</p>';
  modal('Share \u201c'+esc(p.name)+'\u201d',`<div class="shsec"><span class="bl">Live sync</span>${live}</div><div class="shsec"><span class="bl">Invite travel-mates</span>${inv}${s?'':'<p class="muted">Start live sharing first, then each invite carries the link.</p>'}</div><div class="shsec"><span class="bl">Quick copy (no cloud needed)</span><p class="muted">Sends a one-time copy of the plan. It will not stay in sync.</p><button class="mini" data-act="snap">Copy snapshot link</button><textarea id="snapbox" rows="3" hidden readonly aria-label="Snapshot link"></textarea></div><div class="shsec"><span class="bl">Got an invite?</span><button class="mini" data-act="join">Join a friend's plan</button></div>`,{nofocus:1});$('#mbody').classList.add('shareplanm')}
-async function startShare(){const p=cp();if(!cloudOn()){openCloud();return}closeM();p.sync={code:rnd(),rev:0,base:'',at:0,err:''};toast('Creating the shared plan\u2026');await syncNow(p);const q=cp();if(q.sync&&!q.sync.base){const why=q.sync.err;delete q.sync;save();render();toast('Could not reach the cloud database'+(why?' ('+why+')':''));return}openSharePlan()}
+async function startShare(){const p=cp();if(!cloudOn()){openCloud();return}if(SPACE.active&&SPACE.uid&&spaceNameKey(p.owner||ME)===spaceNameKey(SPACE.name)){p.memberSpaces=Array.isArray(p.memberSpaces)?p.memberSpaces:[];if(!p.memberSpaces.some(m=>m&&m.id===SPACE.uid))p.memberSpaces.push({id:SPACE.uid,name:SPACE.name});}closeM();p.sync={code:rnd(),rev:0,base:'',at:0,err:''};toast('Creating the shared plan\u2026');await syncNow(p);const q=cp();if(q.sync&&!q.sync.base){const why=q.sync.err;delete q.sync;save();render();toast('Could not reach the cloud database'+(why?' ('+why+')':''));return}openSharePlan()}
 async function syncBtn(){closeM();await syncNow(cp());openSharePlan()}
 function stopShare(){ask('Stop sharing this plan? It stays on this device, but changes will no longer sync with your friends.',()=>{delete cp().sync;render()},'Stop sharing')}
 async function copyLink(){const p=cp();if(!p.sync)return;toast(await copyText(inviteLink(p),$('#slink'))?'Invite link copied':'Select the link and copy it')}
@@ -1808,7 +1860,7 @@ async function snapShare(){const l=baseUrl()+'#plan='+await enc(strip(cp())),t=$
 function openCloud(){modal('Cloud sync settings',`<p class="muted">Live sharing uses a free Firebase Firestore database that you own. Paste the two values from Firebase \u2192 Project settings \u2192 Your apps (see the deploy guide).</p>`+F('Firebase project ID',`<input id="cp" value="${esc(CL.p)}" placeholder="my-plyt-1234" aria-label="Project ID">`)+F('Firebase web API key',`<input id="ck" value="${esc(CL.k)}" placeholder="AIza\u2026" aria-label="API key">`)+F('Google Maps Embed API key (optional)',`<input id="cm" value="${esc(CL.m)}" placeholder="optional" aria-label="Maps key">`)+`<p class="muted" id="ctest"></p><button type="button" class="mini" data-act="testcloud">Test connection</button>`,{label:'Save',nofocus:1,save:()=>{CL.p=$('#cp').value.trim();CL.k=$('#ck').value.trim();CL.m=$('#cm').value.trim();saveCL();render();return true}})}
 async function testCloud(){CL.p=$('#cp').value.trim();CL.k=$('#ck').value.trim();const t=$('#ctest');t.textContent='Testing\u2026';try{await fsGet('connection-test-0000');t.textContent='Connected \u2713'}catch(e){t.textContent='Could not connect ('+(e.message||e)+'). Check the project ID, API key and rules.'}}
 let JP=null;
-function openJoin(txt){modal('Join a friend\u2019s plan',F('Paste the invite link or code',`<textarea id="jt" rows="4" placeholder="https://\u2026#join=\u2026" aria-label="Invite link">${esc(txt||'')}</textarea>`),{label:'Continue',save:()=>{startJoin($('#jt').value);return false}})}
+function openJoin(txt){modal('Join a friend’s plan',F('Paste the invite link or code',`<textarea id="jt" rows="4" placeholder="https://…#join=…" aria-label="Invite link">${esc(txt||'')}</textarea>`),{label:'Continue',save:()=>{startJoin($('#jt').value);return false}})}
 function parseJoin(t){t=(t||'').trim();const i=t.indexOf('#'),q=new URLSearchParams(i>=0?t.slice(i+1):t);
  if(q.get('join'))return{kind:'cloud',code:q.get('join'),p:q.get('p')||'',k:q.get('k')||''};
  if(q.get('plan'))return{kind:'snap',data:q.get('plan')};
@@ -1818,62 +1870,53 @@ async function startJoin(text){const j=parseJoin(text);if(!j){toast('That does n
  try{let R,rem=null;
   if(j.kind==='cloud'){if(j.p&&j.k){CL.p=j.p;CL.k=j.k;saveCL()}if(!cloudOn()){toast('Set up cloud sync on this device first');openCloud();return}rem=await fsGet(j.code);if(!rem){toast('No plan found for that code');return}R=JSON.parse(rem.d)}
   else R=await dec(j.data);
-  JP={j,R,rem};joinStep2()}catch(e){toast('Could not open that link')}}
+  JP={j,R,rem};joinStep2();
+ }catch(e){toast('Could not open that link'+(e&&e.message?' ('+e.message+')':''))}}
 const nameKey=s=>String(s||'').normalize('NFC').replace(/\s+/g,' ').trim().toLowerCase();
-const joinNames=R=>{const seen=new Set(),out=[];[R.owner,...(R.mates||[])].forEach(n=>{const v=String(n||'').trim();if(v&&!seen.has(nameKey(v))){seen.add(nameKey(v));out.push(v)}});return out};
-/* Validates the name typed in the Join dialog. Returns {err} or {name, existing}. */
-function checkJoinName(raw,names){
- const v=String(raw||'').trim();
- if(!v)return{err:raw&&raw.length?'A name cannot be only spaces. Please type your name.':'Choose a name above or enter your own to join.'};
- if(v.length>40)return{err:`Names can be up to 40 characters (you entered ${v.length}).`};
- const hit=names.find(n=>nameKey(n)===nameKey(v));
- return hit?{name:hit,existing:true}:{name:v,existing:false}}
-/* Keeps pills, helper message and Join button in sync with what is typed. */
-function joinRefresh(showErr){
- if(!JP||!JP.names)return null;
- const inp=$('#jname'),raw=inp.value,r=checkJoinName(raw,JP.names),msg=$('#jmsg'),btn=$('#msave'),typedBad=raw.length>0&&!!r.err,loud=!!r.err&&(showErr||typedBad);
- $$('#jpills [data-nm]').forEach(b=>{const on=!!r.existing&&nameKey(b.dataset.nm)===nameKey(r.name);b.classList.toggle('on',on);b.setAttribute('aria-pressed',on?'true':'false')});
- btn.setAttribute('aria-disabled',r.err?'true':'false');inp.setAttribute('aria-invalid',loud?'true':'false');
- if(r.err){msg.textContent=loud?r.err:'Pick a name above or type yours below.';msg.className='jmsg'+(loud?' err':'')}
- else{msg.textContent=r.existing?`You will join as ${r.name} (already in this plan).`:`\u201c${r.name}\u201d will be added to this plan as a new travel-mate.`;msg.className='jmsg ok'}
- return r}
-function joinPick(n){const i=$('#jname');if(!i)return;i.value=n;joinRefresh(false)}
-function joinStep2(){const{j,R}=JP,live=j.kind==='cloud';JP.names=joinNames(R);
- const pills=JP.names.map(n=>`<button type="button" class="mc jp" data-nm="${esc(n)}" aria-pressed="false">${esc(n)}${R.owner&&nameKey(R.owner)===nameKey(n)?'<small>owner</small>':''}</button>`).join('');
- modal('Join \u201c'+esc(R.name)+'\u201d',live
-  ?`<p class="muted">Choose your name to join this trip. Select an existing travel-mate or enter a new name.</p><div class="f"><span class="fk" id="jlbl">Who are you?</span><div class="chips2" id="jpills" role="group" aria-labelledby="jlbl">${pills||'<span class="muted">No travel-mates yet \u2013 enter your name below.</span>'}</div><input id="jname" value="" placeholder="Enter your name" autocomplete="off" aria-label="Your name" aria-describedby="jmsg"><p class="jmsg" id="jmsg" role="status" aria-live="polite"></p></div>`
-  :`<p class="muted">This is a one-time copy \u2013 it will not stay in sync.</p>`,
-  {label:live?'Join plan':'Add a copy',nofocus:1,save:()=>{
-   if(!live){finishJoin(null);return true}
-   const r=joinRefresh(true);if(!r||r.err){$('#jname').focus();return false}
-   finishJoin(r.name);return true}});
- if(live){$('#mbody').classList.add('joinm');joinRefresh(false)}}
-function finishJoin(n){const{j,R,rem}=JP;JP=null;let np;
+const joinNames=R=>{const seen=new Set(),out=[];[R.owner,...(R.mates||[]),...((R.memberSpaces||[]).map(m=>m&&m.name||''))].forEach(n=>{const v=String(n||'').trim(),k=nameKey(v);if(v&&!seen.has(k)){seen.add(k);out.push(v)}});return out};
+function joinPlanSummaryHtml(R){
+ const dests=(R.dests||[]).map(d=>String(d.name||'').trim()).filter(Boolean),members=joinNames(R),days=R.start&&R.end?Math.max(1,diff(R.start,R.end)+1):Math.max(1,...(R.dests||[]).map(d=>(d.days||[]).length)),dates=R.start&&R.end?`${fm(R.start)} – ${fm(R.end)}`:'Dates not set',stops=(R.dests||[]).reduce((sum,d)=>sum+(d.stops||[]).length,0),description=String(R.note||'').trim()|| (dests.length?`Trip to ${dests.join(' → ')}`:'A shared travel plan');
+ const memberHtml=members.length?members.map(n=>`<span class="join-member-chip${nameKey(n)===nameKey(R.owner)?' owner':''}">${esc(n)}${nameKey(n)===nameKey(R.owner)?' · owner':''}</span>`).join(''):'<span class="muted">No members listed yet</span>';
+ return `<div class="join-plan-summary"><p class="join-plan-description">${esc(description)}</p><div class="join-plan-facts"><div><span>Destinations</span><b>${dests.length?esc(dests.join(' → ')):'Not set'}</b></div><div><span>Duration</span><b>${days} day${days===1?'':'s'}</b></div><div><span>Dates</span><b>${esc(dates)}</b></div><div><span>Stops</span><b>${stops}</b></div></div><div class="join-plan-owner"><span>Plan owner</span><b>${esc(R.owner||'Not specified')}</b></div><div class="join-plan-members"><span class="bl">Members (${members.length})</span><div class="join-member-list">${memberHtml}</div></div></div>`;
+}
+function joinState(){const{j,R}=JP,me=String(SPACE.active?SPACE.name:ME||'').trim(),memberSpaces=Array.isArray(R.memberSpaces)?R.memberSpaces:[],identityMatch=!!SPACE.uid&&memberSpaces.some(m=>m&&m.id===SPACE.uid),sameNameRecord=!!me&&memberSpaces.some(m=>m&&nameKey(m.name)===nameKey(me)),legacyNameMatch=!!me&&!sameNameRecord&&joinNames(R).some(n=>nameKey(n)===nameKey(me)),local=j.kind==='cloud'?P.find(p=>p.sync&&p.sync.code===j.code):P.find(p=>p.id&&R.id&&p.id===R.id),already=identityMatch||!!local||legacyNameMatch;return{me,inRemote:identityMatch||legacyNameMatch,local,already,identityMatch,legacyNameMatch,sameNameRecord};}
+function showJoinAccessOptions(){const{R,j}=JP;modal(`Join “${esc(R.name||'shared plan')}”`,`${joinPlanSummaryHtml(R)}<p class="muted join-entry-help">To continue, open your existing Plyt Space or create a new one. Your name and personal access code let you find your plans on other devices.</p><div class="join-entry-actions"><button type="button" class="btn" data-act="joinexistinguser">I already have a Plyt Space</button><button type="button" class="mini" data-act="joinnewuser">Create a new Plyt Space</button></div>`,{nofocus:1});$('#mbody').classList.add('joinm');}
+function openJoinExistingSpace(){modal('Open your Plyt Space',`<p class="muted">Enter the name and personal access code you saved earlier. We’ll open your plans, then return you to this invitation.</p><p class="jmsg" id="joinSpaceMsg" role="status"></p>${F('Your name',`<input id="joinSpaceName" maxlength="40" placeholder="Your name" autocomplete="name" aria-label="Your name">`)}${F('Personal access code',`<input id="joinSpaceCode" maxlength="24" placeholder="XXXX-XXXX-XXXX-XXXX-XXXX" autocomplete="off" autocapitalize="characters" aria-label="Personal access code">`)}<div class="access-actions"><button type="button" class="ghost" data-act="backjoinoptions">Back to options</button></div>`,{label:'Open and continue',nofocus:1,save:()=>{openExistingSpaceForJoin();return false;}});$('#mbody').classList.add('personal-gate');}
+async function openExistingSpaceForJoin(){const name=$('#joinSpaceName').value.trim(),code=cleanAccessCode($('#joinSpaceCode').value),msg=$('#joinSpaceMsg'),btn=$('#msave');if(!name||name.length>40){msg.textContent='Enter the name used when you created your Plyt Space.';msg.className='jmsg err';return;}if(!/^[A-HJ-NP-Z2-9]{20}$/.test(code)){msg.textContent='Enter the full 20-character personal access code.';msg.className='jmsg err';return;}if(btn)btn.disabled=true;msg.textContent='Checking your Plyt Space…';msg.className='jmsg';try{const rec=await personalGet(code);if(!rec){msg.textContent='Name or access code is incorrect. Check both and try again.';msg.className='jmsg err';return;}const data=JSON.parse(rec.d);if(spaceNameKey(name)!==spaceNameKey(data.name)){msg.textContent='Name or access code is incorrect. Check both and try again.';msg.className='jmsg err';return;}await activatePersonalSpace(code,data,rec);closeM();render();joinStep2();}catch(e){msg.textContent=personalErrorText(e);msg.className='jmsg err';}finally{if($('#msave'))$('#msave').disabled=false;}}
+function openJoinNewSpace(){modal('Create your new Plyt Space',`<p class="muted">First enter the name you want to use in Plyt. Generate an access code, copy both your name and code to a private place, and then complete your space.</p><p class="jmsg" id="joinNewSpaceMsg" role="status"></p>${F('Your name',`<input id="joinNewSpaceName" maxlength="40" placeholder="Enter your name" autocomplete="name" aria-label="Your name">`)}<button type="button" class="mini gate-generate" data-act="generatejoincode">Generate Your New Access Code</button>${F('Personal access code',`<div class="access-code-box"><input id="joinNewSpaceCode" readonly placeholder="Generate a code first" aria-label="Generated personal access code"><button type="button" class="mini" data-act="copyjoincode">Copy code</button></div>`)}<p id="joinNewSpaceNote" class="muted">Your access code will appear here after generation. Anyone who has the code can access your space.</p><div class="access-actions"><button type="button" class="ghost" data-act="backjoinoptions">Back to options</button></div>`,{label:'Complete my new Plyt Space',nofocus:1,save:()=>{completeJoinNewSpace();return false;}});$('#mbody').classList.add('personal-gate');$('#msave').disabled=true;}
+function generateJoinSpaceCode(){const name=$('#joinNewSpaceName').value.trim(),msg=$('#joinNewSpaceMsg');if(!name||name.length>40){msg.textContent='Enter your name (up to 40 characters) before generating a code.';msg.className='jmsg err';$('#joinNewSpaceName').focus();return;}const code=makeAccessCode(),f=$('#joinNewSpaceCode');f.value=prettyAccessCode(code);f.dataset.generatedCode=code;$('#msave').disabled=false;msg.textContent='Access code generated.';msg.className='jmsg ok';$('#joinNewSpaceNote').textContent='Copy and privately save both your name and this code (for example in a password manager). You will need them to open your plans on another device. Plyt cannot recover a lost code.';}
+async function copyJoinSpaceCode(){const f=$('#joinNewSpaceCode'),code=cleanAccessCode(f?.dataset.generatedCode||f?.value||'');if(!code){toast('Generate an access code first');return;}toast(await copyText(prettyAccessCode(code))?'Access code copied':'Could not copy the access code');}
+async function completeJoinNewSpace(){const name=$('#joinNewSpaceName').value.trim(),f=$('#joinNewSpaceCode'),code=cleanAccessCode(f?.dataset.generatedCode||''),msg=$('#joinNewSpaceMsg'),btn=$('#msave');if(!name||name.length>40){msg.textContent='Enter your name (up to 40 characters).';msg.className='jmsg err';return;}if(!/^[A-HJ-NP-Z2-9]{20}$/.test(code)||code!==cleanAccessCode(f.value)){msg.textContent='Generate your access code before completing your space.';msg.className='jmsg err';return;}if(!cloudOn()){msg.textContent='Firebase is not configured. Check the Firebase project ID and API key.';msg.className='jmsg err';return;}if(btn)btn.disabled=true;msg.textContent='Creating your empty Plyt Space…';msg.className='jmsg';
+ const old={P,H,KM,ME,PME,U:{...U},SPACE:{...SPACE}};
+ try{P=[];H=[];KM=[];PME={};savePME();U.pid=null;U.xp=null;U.did=null;U.day=0;U.sel=0;U.hd=0;U.a=null;U.b=null;setMe(name);const uid=makeSpaceUid(),d=personalSnapshot(name,uid),res=await personalPut(code,d,1,'currentDocument.exists=false');if(res.conflict)throw new Error('This generated code already exists. Generate another code and try again.');SPACE={active:true,code,uid,name,base:d,rev:1,t:res.t||'',busy:false,timer:0};saveSpaceSession();save();closeM();render();showNewPersonalCode(code,name,0,()=>joinStep2());
+ }catch(e){P=old.P;H=old.H;KM=old.KM;PME=old.PME;Object.assign(U,old.U);SPACE=old.SPACE;setMe(old.ME);savePME();msg.textContent=personalErrorText(e);msg.className='jmsg err';}finally{if($('#msave'))$('#msave').disabled=false;}}
+function joinStep2(){if(!JP)return;const{j,R,rem}=JP,live=j.kind==='cloud';if(!SPACE.active){showJoinAccessOptions();return;}const state=joinState();
+ const already=state.already;
+ const stateText=already?`<p class="jmsg ok join-already" role="status">You’re already in this plan.</p>`:live?`<p class="muted join-as">You’ll join as <b>${esc(state.me||SPACE.name||ME)}</b>.</p>`:`<p class="muted">This is a one-time copy — it will not stay in sync.</p>`;
+ const nameConflict=live&&state.sameNameRecord&&!state.identityMatch&&!state.local;
+ const conflictText=nameConflict?`<p class="muted">A member already uses the name ${esc(state.me)} with a different Plyt Space. This space will be tracked separately, but Budget entries use display names; consider choosing a distinct name to avoid mixing expenses.</p>`:'';
+ const actionLabel=already?(state.local?'Open plan':'Add to my plans'):(live?'Join Plan':'Add a copy');
+ modal(`Join “${esc(R.name||'shared plan')}”`,`${joinPlanSummaryHtml(R)}${stateText}${conflictText}`,{label:actionLabel,nofocus:1,save:()=>{finishJoin(state.me,already);return true;}});$('#mbody').classList.add('joinm');}
+function finishJoin(n,already=false){if(!JP)return;const{j,R,rem}=JP;JP=null;let np;
  if(j.kind==='cloud'){
-  const ex=P.find(x=>x.sync&&x.sync.code===j.code);
+  const me=String(SPACE.active?SPACE.name:ME||n||'').trim(),uid=String(SPACE.uid||'');if(!me||!uid){toast('Open or create a Plyt Space before joining');return;}
+  const records=Array.isArray(R.memberSpaces)?R.memberSpaces:[],identityAlready=records.some(m=>m&&m.id===uid),sameNameRecord=records.some(m=>m&&nameKey(m.name)===nameKey(me)),legacyAlready=!records.length&&joinNames(R).some(x=>nameKey(x)===nameKey(me)),memberAlready=identityAlready||legacyAlready,ex=P.find(x=>x.sync&&x.sync.code===j.code);
   if(ex){
-   const current=joinNames(ex).find(x=>nameKey(x)===nameKey(n));
-   const known=current||ppl(ex).find(x=>nameKey(x)===nameKey(n));
-   const me=current||known||String(n||'').trim();
-   ex.mates=ex.mates||[];
-   if(me&&!ex.mates.some(x=>nameKey(x)===nameKey(me))&&nameKey(ex.owner)!==nameKey(me)){
-    ex.mates.push(me);
-    syncNow(ex);
-   }
-   PME[ex.id]=me;savePME();
-   if(!meConfirmed())setMe(me);
-   U.pid=ex.id;go('plan');toast('You already have this plan; joined as '+me);return;
+   ex.mates=ex.mates||[];ex.memberSpaces=Array.isArray(ex.memberSpaces)?ex.memberSpaces.slice():records.slice();
+   let changed=false;if(!ex.memberSpaces.some(m=>m&&m.id===uid)){ex.memberSpaces.push({id:uid,name:me});changed=true;}
+   const nameInPlan=joinNames(R).some(x=>nameKey(x)===nameKey(me));if(!nameInPlan&&nameKey(ex.owner)!==nameKey(me)&&!ex.mates.some(x=>nameKey(x)===nameKey(me))){ex.mates.push(me);changed=true;}
+   PME[ex.id]=me;savePME();if(changed)syncNow(ex);if(SPACE.active)schedulePersonalSync();U.pid=ex.id;U.did=null;U.day=0;U.sel=0;go('plan');toast(already?'You’re already in this plan.':'Joined “'+ex.name+'”');return;
   }
-  np=Object.assign({},R,{sync:{code:j.code,rev:rem.r,base:rem.d,at:Date.now(),err:''}})}
- else{np=Object.assign({},R,{id:nid()});delete np.sync}
- np.bud=np.bud||{total:0,cur:'\u20ab',exp:[],set:[]};np.packing=np.packing||{note:'',items:[]};np.flights=np.flights||[];np.mates=np.mates||[];np.owner=np.owner||ME;
- if(j.kind==='cloud'){
-  const member=joinNames(np).find(x=>nameKey(x)===nameKey(n)),known=ppl(np).find(x=>nameKey(x)===nameKey(n)),me=member||known||n;
-  if(!member)np.mates.push(me);            // new travel-mate: reaches Firestore through the normal sync/merge
-  PME[np.id]=me;savePME();                 // who I am in THIS plan (device-local, never synced)
-  if(!meConfirmed())setMe(me)}             // first identity on this device also drives the greeting
- P.push(np);U.pid=np.id;U.did=null;U.day=0;U.sel=0;U.hd=0;go('home');toast('Joined \u201c'+np.name+'\u201d')}
+  np=Object.assign({},R,{sync:{code:j.code,rev:rem.r,base:rem.d,at:Date.now(),err:''}});
+  np.bud=np.bud||{total:0,cur:'\u20ab',exp:[],set:[]};np.packing=np.packing||{note:'',items:[]};np.flights=np.flights||[];np.mates=np.mates||[];np.owner=np.owner||me;np.memberSpaces=Array.isArray(np.memberSpaces)?np.memberSpaces.slice():[];
+  let changed=false;if(!np.memberSpaces.some(m=>m&&m.id===uid)){np.memberSpaces.push({id:uid,name:me});changed=true;}
+  const nameInPlan=joinNames(R).some(x=>nameKey(x)===nameKey(me));if(!nameInPlan&&nameKey(np.owner)!==nameKey(me)&&!np.mates.some(x=>nameKey(x)===nameKey(me))){np.mates.push(me);changed=true;}
+  PME[np.id]=me;savePME();P.push(np);U.pid=np.id;U.did=null;U.day=0;U.sel=0;U.hd=0;if(SPACE.active)schedulePersonalSync();if(changed)syncNow(np);go('home');toast(already?'You’re already in this plan. Added it to your plans.':'Joined “'+np.name+'”');return;
+ }
+ const existing=R.id?P.find(p=>p.id===R.id):null;if(existing){U.pid=existing.id;U.did=null;U.day=0;U.sel=0;U.hd=0;go('plan');toast('You’re already in this plan.');return;}
+ np=Object.assign({},R,{id:nid()});delete np.sync;np.bud=np.bud||{total:0,cur:'\u20ab',exp:[],set:[]};np.packing=np.packing||{note:'',items:[]};np.flights=np.flights||[];np.mates=np.mates||[];np.owner=np.owner||ME;P.push(np);U.pid=np.id;U.did=null;U.day=0;U.sel=0;U.hd=0;if(SPACE.active)schedulePersonalSync();go('home');toast('Added a copy of “'+np.name+'”');}
 function handleHash(){let h='';try{h=location.hash}catch(e){}if(!/^#(join|plan)=/.test(h))return;try{history.replaceState(null,'',location.href.split('#')[0])}catch(e){}startJoin(h)}
+
 /* ---------- actions ---------- */
 function toggleDone(id){const r=findStop(id);if(r){r.s.done=!r.s.done;render()}}
 function selStop(i,scroll){U.sel=i;$$('[data-sel],[data-si]').forEach(el=>el.classList.toggle('sel',+(el.dataset.sel??el.dataset.si)===i));$$('.rg').forEach(r=>r.classList.toggle('on',+r.dataset.ri===i));const s=curStop(),b=$('#bdone');if(b)b.setAttribute('aria-pressed',!!(s&&s.done));if(scroll){const li=$(`[data-si="${i}"]`);if(li)li.scrollIntoView({block:'nearest',behavior:'smooth'})}}
@@ -1890,12 +1933,12 @@ const hideMenus=()=>$$('.menu').forEach(m=>m.hidden=true);
 const toggleMenu=id=>{const m=$(id),h=m.hidden;hideMenus();m.hidden=!h};
 function delX(k,v){const p=cp(),d=cd();
  if(k==='d'){const x=p.dests.find(y=>y.id===v);if(!x)return;if(p.dests.length<2){toast('A plan needs at least one destination');return}ask(`Delete destination \u201c${esc(x.name)}\u201d and its stops?`,()=>{p.dests=p.dests.filter(y=>y!==x);U.did=null;U.day=0;U.sel=0;render()})}
- else if(k==='m'){const n=p.mates[+v];ask(`Remove ${esc(n)} from \u201c${esc(p.name)}\u201d?`,()=>{p.mates.splice(+v,1);render()},'Remove')}
+ else if(k==='m'){const n=p.mates[+v];if(hasBudgetReferences(p,n)){toast('This member has Budget records. Update or delete those expenses/payments before removing them from the plan.');return;}ask(`Remove ${esc(n)} from \u201c${esc(p.name)}\u201d?`,()=>{p.mates.splice(+v,1);render()},'Remove')}
  else if(k==='y'){const ds=dd(d),old=ds[+v];if(ds.length<2){toast('A destination needs at least one day');return}const c=d.stops.filter(s=>s.date===old).length;ask(`Delete ${esc(dayL(d,+v))} and its ${c} stop${c===1?'':'s'}?`,()=>{d.days=d.days.filter(x=>x!==old);d.stops=d.stops.filter(s=>s.date!==old);if(d.dl)delete d.dl[old];U.day=0;U.sel=0;render()})}
  else if(k==='e'){const r=findExp(v);if(r)ask(`Delete \u201c${esc(r.e.t)}\u201d?`,()=>{r.p.bud.exp=r.p.bud.exp.filter(x=>x!==r.e);render()})}
  else if(k==='t'){const s=p.bud.set.find(x=>x.id===v);if(s)ask('Delete this payment record?',()=>{p.bud.set=p.bud.set.filter(x=>x!==s);render()})}
  else if(k==='s'){const r=findStop(v);if(r)ask(`Delete \u201c${esc(r.s.name)}\u201d?`,()=>{r.d.stops=r.d.stops.filter(x=>x!==r.s);U.sel=0;render()})}}
-function act(a,D){hideMenus();({plan:()=>openPlan({range:D.range}),editplan:()=>openPlan({pid:U.pid}),createspace:createPersonalSpaceFromGate,joinfromgate:()=>{closeM();openJoin()},copyspacecode:copyPersonalCode,switchspace:switchPersonalSpace,personalaccess:()=>{closeM();openPersonalGate()},dest:()=>openDest(),editdest:()=>openDest({edit:1}),stop:()=>openStop({}),day:()=>openDay({}),editday:()=>openDay({edit:1}),flight:()=>openFlight({}),pack:openPack,me:openMe,shareplan:openSharePlan,cloud:openCloud,startshare:startShare,copylink:copyLink,nativeshare:nativeShare,syncnow:syncBtn,stopshare:stopShare,snap:snapShare,join:()=>openJoin(),testcloud:testCloud,maptoggle:()=>{U.mh=!U.mh;renderExplore()},expense:()=>openExpense({}),settle:()=>openSettle({}),bset:openBset,share:openBShare,mates:openMates,addmate:()=>{openMates();setTimeout(()=>{const i=$('#mnew2');if(i)i.focus()},40)}}[a]||(()=>{}))()}
+function act(a,D){hideMenus();({plan:()=>openPlan({range:D.range}),editplan:()=>openPlan({pid:U.pid}),createspace:createPersonalSpaceFromGate,generategatecode:generateGateAccessCode,copygatecode:copyGateAccessCode,joinexistinguser:openJoinExistingSpace,joinnewuser:openJoinNewSpace,backjoinoptions:showJoinAccessOptions,generatejoincode:generateJoinSpaceCode,copyjoincode:copyJoinSpaceCode,moreplans:openMorePlans,joinfromgate:()=>{closeM();openJoin()},copyspacecode:copyPersonalCode,switchspace:switchPersonalSpace,personalaccess:()=>{closeM();openPersonalGate()},dest:()=>openDest(),editdest:()=>openDest({edit:1}),stop:()=>openStop({}),day:()=>openDay({}),editday:()=>openDay({edit:1}),flight:()=>openFlight({}),pack:openPack,me:openMe,shareplan:openSharePlan,cloud:openCloud,startshare:startShare,copylink:copyLink,nativeshare:nativeShare,syncnow:syncBtn,stopshare:stopShare,snap:snapShare,join:()=>openJoin(),testcloud:testCloud,maptoggle:()=>{U.mh=!U.mh;renderExplore()},expense:()=>openExpense({}),settle:()=>openSettle({}),bset:openBset,share:openBShare,mates:openMates,addmate:()=>{openMates();setTimeout(()=>{const i=$('#mnew2');if(i)i.focus()},40)}}[a]||(()=>{}))()}
 document.addEventListener('keydown',e=>{
  if(e.key==='Enter'||e.key===' '){
   const more=e.target.closest('[data-card-dests],[data-route-dests]');
@@ -1974,7 +2017,7 @@ document.addEventListener('click',e=>{
  if(D.dc!==undefined){el.remove();return}
  if(el.classList.contains('swb')){[...el.parentElement.children].forEach(b=>b.classList.remove('on'));el.classList.add('on');return}
  if(D.rmimg!==undefined){IMG='';$('#fprev').hidden=true;$('#fimg').value='';return}
- if(D.mrm!==undefined){cp().mates.splice(+D.mrm,1);render();openMates();return}
+ if(D.mrm!==undefined){const p=cp(),n=p.mates[+D.mrm];if(hasBudgetReferences(p,n)){toast('This member has Budget records. Update or delete those expenses/payments before removing them from the plan.');return;}p.mates.splice(+D.mrm,1);render();openMates();return}
  if(D.pli!==undefined){PK[+D.pli].d=!PK[+D.pli].d;drawPK();return}
  if(D.plr!==undefined){PK.splice(+D.plr,1);drawPK();return}
  switch(el.id){case'pnav':toggleMenu('#pmenu');break;case'xnav':toggleMenu('#xmenu');break;case'bnav':toggleMenu('#bmenu');break;case'dadd':addChip('dnew','dch','dc');break;case'madd2':addChip('mnew','mch','mc');break;
@@ -1987,10 +2030,10 @@ document.addEventListener('change',e=>{const t=e.target;
  if(t.id==='fimg'&&t.files[0])readImg(t.files[0],u=>{IMG=u;const p=$('#fprev');p.src=u;p.hidden=false});
  if(t.id==='fp'){const p=P.find(x=>x.id===t.value);$('#fd').innerHTML=p.dests.map(d=>`<option value="${d.id}">${esc(d.name)}</option>`).join('')}
  if(t.id==='pp'){const p=P.find(x=>x.id===t.value);PK=p.packing.items.map(x=>({...x}));$('#rte').innerHTML=p.packing.note;drawPK()}});
-document.addEventListener('input',e=>{if(e.target.id==='q')renderExplore();if(e.target.id==='ea')updRem();if(e.target.id==='jname')joinRefresh(false);if(e.target.dataset&&e.target.dataset.exn!==undefined){XS.ex[e.target.dataset.exn]=+e.target.value;updRem()}if(e.target.dataset&&e.target.dataset.pii!==undefined)PK[+e.target.dataset.pii].t=e.target.value});
+document.addEventListener('input',e=>{if(e.target.id==='q')renderExplore();if(e.target.id==='ea')updRem();if(e.target.dataset&&e.target.dataset.exn!==undefined){XS.ex[e.target.dataset.exn]=+e.target.value;updRem()}if(e.target.dataset&&e.target.dataset.pii!==undefined)PK[+e.target.dataset.pii].t=e.target.value});
 document.addEventListener('keydown',e=>{
  if(e.key==='Escape'){if($('#mbody').classList.contains('personal-gate'))return;closeM();hideMenus()}
- if(e.key==='Enter'){const m={dnew:'#dadd',mnew:'#madd2',pnew:'#padd',mnew2:'#madd3',jname:'#msave'}[e.target.id];if(m){e.preventDefault();$(m).click()}else if(e.target.id==='q'){e.preventDefault();doSearch(false)}}
+ if(e.key==='Enter'){const m={dnew:'#dadd',mnew:'#madd2',pnew:'#padd',mnew2:'#madd3'}[e.target.id];if(m){e.preventDefault();$(m).click()}else if(e.target.id==='q'){e.preventDefault();doSearch(false)}}
  const n=e.target.closest&&e.target.closest('[data-sel]');if(n&&(e.key==='Enter'||e.key===' ')){e.preventDefault();selStop(+n.dataset.sel,true)}
  const c=e.target.closest&&e.target.closest('[data-d]');if(c&&(e.key==='Enter'||e.key===' ')){e.preventDefault();c.click()}
  const g=e.target.closest&&e.target.closest('g[data-act]');if(g&&(e.key==='Enter'||e.key===' ')){e.preventDefault();act(g.dataset.act,g.dataset)}});
