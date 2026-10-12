@@ -1029,18 +1029,29 @@ button.dest-pop-item{cursor:pointer}
 @media(max-width:520px){.panel .join-plan-summary{gap:10px}.panel .join-plan-facts{gap:7px}.panel .join-plan-facts>div{padding:9px 10px}.panel .join-entry-actions{flex-direction:column}.panel .join-entry-actions button{width:100%;flex-basis:auto}}
 
 
-/* ===== Plyt mobile UI refinements: stop date/time, animated scene, home hero ===== */
+/* ===== Plyt mobile UI refinements: date/time controls follow desktop form rhythm ===== */
 .mbrand{width:100%;}
 .mbrand>.avatar{margin-left:auto;flex:0 0 42px;width:42px;height:42px;}
-.stop-date-time{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:0;align-items:stretch;}
-.stop-date-time>.f{min-width:0;}
-.stop-date-time>.f:first-child{padding-right:10px;border-right:1px solid var(--line);}
-.stop-date-time>.f:last-child{padding-left:10px;}
+/* Keep the same two-column grid, 10px gutter, label rhythm and control sizing as desktop. */
+.date-pair{position:relative;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px;align-items:start;}
+.date-pair>.f{min-width:0;}
+/* A subtle divider sits in the gutter without joining the two input surfaces together. */
+.date-pair::after{content:"";position:absolute;left:50%;top:20px;height:42px;width:1px;transform:translateX(-50%);background:var(--muted);opacity:.55;pointer-events:none;}
 .picker-shell{position:relative;min-width:0;}
-.panel .picker-shell input{display:block;width:100%;min-width:0;max-width:100%;padding-left:10px;padding-right:36px;font-size:15px;font-variant-numeric:tabular-nums;}
-.picker-chevron{position:absolute;right:10px;top:50%;transform:translateY(-50%);display:grid;place-items:center;color:var(--ink);pointer-events:none;}
+/* Match desktop .panel controls (11px 14px, 14px corners, inherited font); reserve room for the visual chevron. */
+.panel .picker-shell input{display:block;width:100%;min-width:0;max-width:100%;padding:11px 34px 11px 14px;font:inherit;font-variant-numeric:tabular-nums;}
+.picker-chevron{position:absolute;right:9px;top:50%;transform:translateY(-50%);display:grid;place-items:center;color:var(--ink);pointer-events:none;}
 .panel .picker-shell input[type="date"]::-webkit-calendar-picker-indicator,
 .panel .picker-shell input[type="time"]::-webkit-calendar-picker-indicator{opacity:0;position:absolute;right:0;width:34px;height:100%;cursor:pointer;}
+@media(max-width:360px){
+ .date-pair{gap:8px;}
+ .date-pair::after{height:39px;}
+ .panel .picker-shell input{padding-left:8px;padding-right:28px;font-size:13px;}
+ .picker-chevron{right:6px;}
+ .picker-chevron svg{width:16px;height:16px;}
+ .panel .picker-shell input[type="date"]::-webkit-calendar-picker-indicator,
+ .panel .picker-shell input[type="time"]::-webkit-calendar-picker-indicator{width:28px;}
+}
 /* Destination count opens the existing destination/scenery picker; it never overlays the hero copy. */
 .hero>.hbar{align-items:flex-start;}
 .hero .hd .hd-count{width:34px;height:34px;min-width:34px;padding:0;flex:0 0 34px;}
@@ -1498,7 +1509,7 @@ function openPlan(o){
  const known=KM.slice();
  modal(ed?'Edit plan':'New plan',F('Plan name',`<input id="pname" value="${esc(p.name)}" placeholder="e.g. Noel trip" aria-label="Plan name">`)
  +(ed?'':F('Destinations',`<div class="chips2" id="dch"></div><div class="addrow"><input id="dnew" placeholder="Where to? e.g. Da Nang" aria-label="Destination"><button type="button" class="mini" id="dadd">${IC.plus} Add</button></div>`))
- +`<div class="two">${F('Start date',`<input id="pstart" type="date" value="${p.start}" aria-label="Start date">`)}${F('End date',`<input id="pend" type="date" value="${p.end}" aria-label="End date">`)}</div>`
+ +`<div class="two date-pair plan-date-range">${F('Start date',`<div class="picker-shell"><input id="pstart" type="date" value="${p.start}" aria-label="Start date"><span class="picker-chevron" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span></div>`)}${F('End date',`<div class="picker-shell"><input id="pend" type="date" value="${p.end}" aria-label="End date"><span class="picker-chevron" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span></div>`)}</div>`
  +F('Travel-mates',`<div class="chips2" id="mch">${known.map(m=>mchip(m,p.mates.includes(m))).join('')}</div><div class="addrow"><input id="mnew" placeholder="Add a travel-mate" aria-label="Travel-mate"><button type="button" class="mini" id="madd2">${IC.plus} Add</button></div>`)
  +F('Remark note',`<textarea id="pnote" rows="3" placeholder="Anything to remember\u2026" aria-label="Remark note">${esc(p.note)}</textarea>`)
  +F('Colour highlight',swatches('pc',COL,p.color)),
@@ -1533,7 +1544,7 @@ function openStop(o){
  o=o||{};const ed=o.sid?findStop(o.sid):null,p0=ed?ed.p:P.find(p=>p.id===(o.pid||U.pid))||cp(),d0=ed?ed.d:(p0.id===U.pid?cd():p0.dests[0]);
  const s=ed?ed.s:{name:o.name||'',time:'09:00',date:dd(d0)[p0.id===U.pid&&d0.id===cd().id?U.day:0]||d0.days[0],color:'',bg:'',tm:0,km:0,note:'',img:'',link:'',ll:''};IMG=s.img||'';
  modal(ed?'Edit stop':'New stop',(ed?'':F('Plan',planSel('fp',p0.id))+F('Destination',sel('fd',p0.dests.map(d=>[d.id,d.name]),d0.id)))
- +`<div class="two stop-date-time"><div class="f"><span class="fk">Date</span><div class="picker-shell"><input id="fdate" type="date" value="${s.date}" aria-label="Date"><span class="picker-chevron" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span></div></div><div class="f"><span class="fk">Time</span><div class="picker-shell"><input id="ftime" type="time" value="${s.time}" aria-label="Time"><span class="picker-chevron" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span></div></div></div>`
+ +`<div class="two date-pair stop-date-time"><div class="f"><span class="fk">Date</span><div class="picker-shell"><input id="fdate" type="date" value="${s.date}" aria-label="Date"><span class="picker-chevron" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span></div></div><div class="f"><span class="fk">Time</span><div class="picker-shell"><input id="ftime" type="time" value="${s.time}" aria-label="Time"><span class="picker-chevron" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span></div></div></div>`
  +F('Stop name',`<input id="fname" value="${esc(s.name)}" placeholder="e.g. Son Tra peninsula" aria-label="Stop name">`)
  +`<div class="two">${F('Title colour',swatches('tc',TXT,s.color,1))}${F('Background',swatches('bg',BGS,s.bg,1))}</div>`
  +`<div class="two">${F('To next stop (min)',`<input id="ftm" type="number" min="0" value="${s.tm||''}" aria-label="Minutes to next stop">`)}${F('To next stop (km)',`<input id="fkm" type="number" min="0" step="0.1" value="${s.km||''}" aria-label="Kilometres to next stop">`)}</div>`
