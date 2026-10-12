@@ -1035,8 +1035,11 @@ button.dest-pop-item{cursor:pointer}
 /* Keep the same two-column grid, 10px gutter, label rhythm and control sizing as desktop. */
 .date-pair{position:relative;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px;align-items:start;}
 .date-pair>.f{min-width:0;}
-/* A subtle divider sits in the gutter without joining the two input surfaces together. */
+/* Preserve the existing divider in other date-pair windows; hide it only for New Stop/Edit Stop and New Plan. */
 .date-pair::after{content:"";position:absolute;left:50%;top:20px;height:42px;width:1px;transform:translateX(-50%);background:var(--muted);opacity:.55;pointer-events:none;}
+.stop-date-time::after,.plan-date-range.no-date-divider::after{display:none;}
+/* These three form windows use a consistent 5px label gap and 10px field-group gap. */
+#mbody.trip-form-spacing .f{margin-bottom:10px;}
 .picker-shell{position:relative;min-width:0;}
 /* Match desktop .panel controls (11px 14px, 14px corners, inherited font); reserve room for the visual chevron. */
 .panel .picker-shell input{display:block;width:100%;min-width:0;max-width:100%;padding:11px 34px 11px 14px;font:inherit;font-variant-numeric:tabular-nums;}
@@ -1483,7 +1486,7 @@ function render(){
 function go(id){if(!P.length&&id!=='home'){toast('Create a plan or join a friend first');return}$$('.screen').forEach(s=>s.classList.toggle('on',s.id===id));$$('.tabs button').forEach(b=>b.setAttribute('aria-selected',b.dataset.go===id));$('main').scrollTop=0;render()}
 /* ---------- modal helpers ---------- */
 let M={},IMG='',PK=[];
-function modal(t,body,o){o=o||{};M=o;$('#mbody').classList.remove('joinm','shareplanm','personal-gate');$('#mbody').innerHTML=`<h3 style="margin-top:0">${t}</h3>${body}<div class="mfoot">${o.del?'<button class="danger" id="mdel">Delete</button>':''}<button class="ghost" data-close>${o.save?'Cancel':'Close'}</button>${o.save?`<button class="btn" id="msave">${o.label||'Save'}</button>`:''}</div>`;$('#sheet').hidden=false;if(!o.nofocus){const f=$('#mbody input:not([type=file]):not([type=date]):not([type=time]),#mbody textarea');if(f)setTimeout(()=>f.focus(),30)}}
+function modal(t,body,o){o=o||{};M=o;$('#mbody').classList.remove('joinm','shareplanm','personal-gate','trip-form-spacing');$('#mbody').innerHTML=`<h3 style="margin-top:0">${t}</h3>${body}<div class="mfoot">${o.del?'<button class="danger" id="mdel">Delete</button>':''}<button class="ghost" data-close>${o.save?'Cancel':'Close'}</button>${o.save?`<button class="btn" id="msave">${o.label||'Save'}</button>`:''}</div>`;$('#sheet').hidden=false;if(!o.nofocus){const f=$('#mbody input:not([type=file]):not([type=date]):not([type=time]),#mbody textarea');if(f)setTimeout(()=>f.focus(),30)}}
 const closeM=()=>{$('#sheet').hidden=true};
 const ask=(msg,fn,lb)=>modal('Please confirm',`<p>${msg}</p>`,{save:()=>{fn();return true},label:lb||'Delete',nofocus:1});
 let tt;const toast=m=>{const t=$('#toast');t.textContent=m;t.hidden=false;clearTimeout(tt);tt=setTimeout(()=>t.hidden=true,2400)};
@@ -1509,7 +1512,7 @@ function openPlan(o){
  const known=KM.slice();
  modal(ed?'Edit plan':'New plan',F('Plan name',`<input id="pname" value="${esc(p.name)}" placeholder="e.g. Noel trip" aria-label="Plan name">`)
  +(ed?'':F('Destinations',`<div class="chips2" id="dch"></div><div class="addrow"><input id="dnew" placeholder="Where to? e.g. Da Nang" aria-label="Destination"><button type="button" class="mini" id="dadd">${IC.plus} Add</button></div>`))
- +`<div class="two date-pair plan-date-range">${F('Start date',`<div class="picker-shell"><input id="pstart" type="date" value="${p.start}" aria-label="Start date"><span class="picker-chevron" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span></div>`)}${F('End date',`<div class="picker-shell"><input id="pend" type="date" value="${p.end}" aria-label="End date"><span class="picker-chevron" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span></div>`)}</div>`
+ +`<div class="two date-pair plan-date-range${ed?'':' no-date-divider'}">${F('Start date',`<div class="picker-shell"><input id="pstart" type="date" value="${p.start}" aria-label="Start date"><span class="picker-chevron" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span></div>`)}${F('End date',`<div class="picker-shell"><input id="pend" type="date" value="${p.end}" aria-label="End date"><span class="picker-chevron" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span></div>`)}</div>`
  +F('Travel-mates',`<div class="chips2" id="mch">${known.map(m=>mchip(m,p.mates.includes(m))).join('')}</div><div class="addrow"><input id="mnew" placeholder="Add a travel-mate" aria-label="Travel-mate"><button type="button" class="mini" id="madd2">${IC.plus} Add</button></div>`)
  +F('Remark note',`<textarea id="pnote" rows="3" placeholder="Anything to remember\u2026" aria-label="Remark note">${esc(p.note)}</textarea>`)
  +F('Colour highlight',swatches('pc',COL,p.color)),
@@ -1530,7 +1533,9 @@ function openPlan(o){
    const D=diff(st,en)+1;let off=0;
    const dests=dn.map((nm,i)=>{let sh=Math.floor(D/dn.length)+(i<D%dn.length?1:0);if(sh<1)sh=1;const s=addD(st,Math.min(off,D-1));off+=sh;return{id:nid(),name:nm,sc:scOf(nm),days:Array.from({length:sh},(_,k)=>addD(s,k)),stops:[]}});
    const np=Object.assign({id:nid(),dests,packing:{note:'',items:[]},flights:[],bud:{total:0,cur:'\u20ab',exp:[],set:[]},owner:ME},v);P.push(np);U.pid=np.id;U.did=null;U.day=0;U.sel=0;U.xp=np.id;U.hd=0;U.cm=new Date(pd(st).getFullYear(),pd(st).getMonth(),1);U.a=U.b=null}
-  render();return true}})}
+  render();return true}});
+ if(!ed)$('#mbody').classList.add('trip-form-spacing');
+}
 function openDest(o){
  const p=cp(),ed=o&&o.edit?cd():null,last=dd(p.dests[p.dests.length-1]).pop();
  modal(ed?'Edit destination':'New destination',F('Destination name',`<input id="dname" value="${esc(ed?ed.name:'')}" placeholder="e.g. Da Lat" aria-label="Destination name">`)
@@ -1558,6 +1563,7 @@ function openStop(o){
   let t;if(ed){Object.assign(ed.s,v);t=ed.s}else{t=Object.assign({id:nid(),done:false},v);d.stops.push(t)}
   if(!d.days.includes(date))d.days.push(date);if(date<p.start)p.start=date;if(date>p.end)p.end=date;
   U.pid=p.id;U.did=d.id;U.day=dd(d).indexOf(date);U.sel=Math.max(0,daySt(d,U.day).indexOf(t));render();return true}});
+ $('#mbody').classList.add('trip-form-spacing');
  const f=o.f;setTimeout(()=>{if(f==='note')$('#rte').focus();else if(f==='link')$('#flink').focus();else if(f==='img')$('#fimg').click()},40)}
 function openMates(){const p=cp();modal('Travel-mates',`<p class="muted">${esc(p.name)} \u00b7 rename or remove travel-mates here</p><ul class="mlist">${p.mates.map((m,i)=>`<li>${avs([m])}<input data-mi="${i}" value="${esc(m)}" aria-label="Rename travel-mate"><button type="button" data-mrm="${i}">Remove</button></li>`).join('')||'<li class="muted">Just you so far.</li>'}</ul>${F('Add a travel-mate',`<div class="addrow"><input id="mnew2" placeholder="Name or email" aria-label="Travel-mate"><button type="button" class="mini" id="madd3">${IC.plus} Add</button></div>`)}`,{nofocus:1})}
 const drawPK=()=>{$('#pl').innerHTML=PK.map((it,i)=>`<li><button type="button" data-pli="${i}" aria-pressed="${it.d}" aria-label="Tick item"><i>${it.d?IC.check:''}</i></button><input class="pi" data-pii="${i}" value="${esc(it.t)}" aria-label="Item name"><button type="button" class="ico" data-plr="${i}" aria-label="Remove item">${IC.x}</button></li>`).join('')||'<li class="muted">No items yet.</li>'};
