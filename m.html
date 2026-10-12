@@ -1028,14 +1028,44 @@ button.dest-pop-item{cursor:pointer}
 .panel .gate-code-help{margin-top:8px;line-height:1.45}
 @media(max-width:520px){.panel .join-plan-summary{gap:10px}.panel .join-plan-facts{gap:7px}.panel .join-plan-facts>div{padding:9px 10px}.panel .join-entry-actions{flex-direction:column}.panel .join-entry-actions button{width:100%;flex-basis:auto}}
 
+
+/* ===== Plyt mobile UI refinements: stop date/time, animated scene, home hero ===== */
+.mbrand{width:100%;}
+.mbrand>.avatar{margin-left:auto;flex:0 0 42px;width:42px;height:42px;}
+.stop-date-time{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:0;align-items:stretch;}
+.stop-date-time>.f{min-width:0;}
+.stop-date-time>.f:first-child{padding-right:10px;border-right:1px solid var(--line);}
+.stop-date-time>.f:last-child{padding-left:10px;}
+.picker-shell{position:relative;min-width:0;}
+.panel .picker-shell input{display:block;width:100%;min-width:0;max-width:100%;padding-left:10px;padding-right:36px;font-size:15px;font-variant-numeric:tabular-nums;}
+.picker-chevron{position:absolute;right:10px;top:50%;transform:translateY(-50%);display:grid;place-items:center;color:var(--ink);pointer-events:none;}
+.panel .picker-shell input[type="date"]::-webkit-calendar-picker-indicator,
+.panel .picker-shell input[type="time"]::-webkit-calendar-picker-indicator{opacity:0;position:absolute;right:0;width:34px;height:100%;cursor:pointer;}
+/* Destination count opens the existing destination/scenery picker; it never overlays the hero copy. */
+.hero>.hbar{align-items:flex-start;}
+.hero .hd .hd-count{width:34px;height:34px;min-width:34px;padding:0;flex:0 0 34px;}
+@media(max-width:520px){
+  #plan #jr.journey-mode .srow{display:flex;flex-direction:column;align-items:stretch;gap:8px;width:100%;}
+  #plan #jr.journey-mode .sc-outer{width:100%;max-width:100%;min-width:0;flex:0 0 auto;}
+  #plan #jr.journey-mode .sc-scroll{width:100%;margin-bottom:0;}
+  #plan #jr.journey-mode .sc-wrap{margin:0;max-width:none;}
+  #plan #jr.journey-mode .sbar{width:100%;min-width:0;max-width:100%;flex:0 0 auto;box-sizing:border-box;flex-direction:row;flex-wrap:wrap;align-items:center;justify-content:space-evenly;gap:6px;padding:8px 9px;border-radius:16px;}
+  #plan #jr.journey-mode .sbar button{flex:0 0 34px;width:34px;height:34px;}
+  #plan #jr.journey-mode .sbar .sep{width:1px;height:24px;}
+  #plan #jr.journey-mode .sbar .zp{min-width:30px;text-align:center;}
+  #home .hero{min-height:270px;}
+  #home .hero .hbar{flex-wrap:nowrap;align-items:center;}
+  #home .hero .hbar .hn{flex:0 0 auto;}
+  #home .hero .hbar .hd{flex:0 0 auto;justify-content:flex-end;}
+}
 </style>
 </head>
 <body>
 <div class="app">
 <main>
 <section class="screen on" id="home">
-  <div class="mbrand"><span class="logo" role="img" aria-label="Plyt hamster logo"></span><div><b>Plyt</b><span>Plan your trip</span></div></div>
-  <div class="top"><div><p id="hNext"></p><h2>Hi <span id="meName">Pablo</span></h2></div><button class="avatar" id="avt" data-act="me" aria-label="Change your name" title="Your name">P</button></div>
+  <div class="mbrand"><span class="logo" role="img" aria-label="Plyt hamster logo"></span><div><b>Plyt</b><span>Plan your trip</span></div><button class="avatar" id="avt" data-act="me" aria-label="Change your name" title="Your name">P</button></div>
+  <div class="top"><div><p id="hNext"></p><h2>Hi <span id="meName">Pablo</span></h2></div></div>
   <div class="hero" id="hero"></div>
   <div class="pills" id="pills"></div>
   <div class="hrow"><h3>Your plans</h3><div class="ba"><button class="mini" data-act="join">Join a plan</button><button class="plusb" data-act="plan" aria-label="Add plan">+</button></div></div>
@@ -1044,7 +1074,7 @@ button.dest-pop-item{cursor:pointer}
 </section>
 <section class="screen" id="plan">
   <div class="top"><div><p class="pl">Plan</p>
-    <h2 class="ph"><span class="dd"><button class="pn" id="pnav" aria-haspopup="listbox" aria-label="Choose plan"><i class="cdot" id="pcol"></i><span id="pn"></span><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button><div class="menu" id="pmenu" role="listbox" hidden></div></span><button class="ico" data-act="editplan" aria-label="Edit plan"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg></button><button class="ico" data-act="shareplan" aria-label="Share plan" title="Share plan"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="6" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="M8.2 10.9l7.6-3.8M8.2 13.1l7.6 3.8"/></svg></button><button class="plusb" data-act="plan" aria-label="Add plan">+</button></h2>
+    <h2 class="ph"><span class="dd"><button class="pn" id="pnav" aria-haspopup="listbox" aria-label="Choose plan"><i class="cdot" id="pcol"></i><span id="pn"></span><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button><div class="menu" id="pmenu" role="listbox" hidden></div></span><button class="ico" data-act="editplan" aria-label="Edit plan"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg></button><button class="ico" data-act="shareplan" aria-label="Share plan" title="Share plan"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="6" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="M8.2 10.9l7.6-3.8M8.2 13.1l7.6 3.8"/></svg></button></h2>
     <p id="pmeta"></p></div>
     <div class="seg" role="group" aria-label="View"><button data-view="static" aria-pressed="true">Static</button><button data-view="journey" aria-pressed="false">Animated</button></div></div>
   <div class="box"><div class="bh"><span class="bl">Destinations</span><div class="ba"><button class="mini" data-act="editdest"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg> Edit</button><button class="mini add" data-act="dest">+ Destination</button></div></div><div class="chips" id="dests"></div></div>
@@ -1272,7 +1302,7 @@ function clean(h){const t=document.createElement('template');t.innerHTML=h;t.con
 /* ---------- scene (journey) ---------- */
 const yW=(x,W)=>183-(x-28)/(W-56)*42+11*Math.sin(x/30);
 const zSteps=[.5,.75,1,1.25,1.5,2,2.5,3];
-function geo(n){const cw=Math.max(200,($('#jr').clientWidth||$('main').clientWidth-36||340)-54),k=cw>600?1.13:cw/380,Wb=Math.round(cw/k),need=((Math.max(n,2)-1)*64/k+68)/Wb,auto=Math.min(3,Math.max(1,Math.ceil(need*4)/4)),z=U.zoom||auto;return{cw,k,Wb,z,W:z>=1?Math.round(Wb*z):Wb}}
+function geo(n){const jr=$('#jr'),horizontal=!!(jr&&jr.classList.contains('journey-mode')&&window.innerWidth<=520),cw=Math.max(200,(jr.clientWidth||$('main').clientWidth-36||340)-(horizontal?0:54)),k=cw>600?1.13:cw/380,Wb=Math.round(cw/k),need=((Math.max(n,2)-1)*64/k+68)/Wb,auto=Math.min(3,Math.max(1,Math.ceil(need*4)/4)),z=U.zoom||auto;return{cw,k,Wb,z,W:z>=1?Math.round(Wb*z):Wb}}
 function sbar(n){const g=geo(n);return `<div class="sbar" role="toolbar" aria-label="Scene tools"><button data-zm="+" title="Zoom in" aria-label="Zoom in">${IC.plus}</button><span class="zp">${Math.round(g.z*100)}%</span><button data-zm="-" title="Zoom out" aria-label="Zoom out">${IC.minus}</button><button data-zm="fit" title="Fit to width" aria-label="Fit to width">${IC.fit}</button><i class="sep"></i><button id="bdone" data-bdone aria-pressed="false" title="Mark selected stop done" aria-label="Mark selected stop done">${IC.check}</button><button data-bedit title="Edit selected stop" aria-label="Edit selected stop">${IC.edit}</button><button data-bdel title="Delete selected stop" aria-label="Delete selected stop">${IC.trash}</button></div>`}
 function journey(stops){
  const d=cd(),n=stops.length,g=geo(n),W=g.W,Pl=PAL[d.sc]||PAL.beach;
@@ -1344,7 +1374,7 @@ function renderHome(){
  $('#meName').textContent=ME;$('#avt').textContent=ME.charAt(0).toUpperCase();const m2=$('#meAv2');if(m2){m2.textContent=ME.charAt(0).toUpperCase();$('#meNm2').textContent=ME}
  const p=cp(),hd=p.dests[Math.min(U.hd,p.dests.length-1)],all=allStops(p),dn=all.filter(s=>s.done).length;
  const sp=SP(),pi=sp.findIndex(x=>x.id===p.id),t0=iso(today),ds0=diff(t0,p.start),de0=diff(t0,p.end),nu=sp.find(x=>x.end>=t0);
- const heroDestControls=p.dests.length>3?`<button type="button" class="hd-count" data-hd-more="${p.id}" aria-label="Choose from ${p.dests.length} destinations">${p.dests.length}</button>`:p.dests.map((x,i)=>`<button type="button" data-hd="${i}" aria-pressed="${x===hd}">${esc(x.name)}</button>`).join('');
+ const heroDestControls=`<button type="button" class="hd-count" data-hd-more="${p.id}" aria-label="Choose scenery from ${p.dests.length} destinations" title="Choose destination scenery">${p.dests.length}</button>`;
  const heroRoute=p.dests.length>3?`${esc(p.dests[0].name)} → ${esc(p.dests[1].name)} → <span class="hero-route-more" data-route-dests="${p.id}" role="button" tabindex="0" aria-label="Show ${p.dests.length-2} more destinations">+${p.dests.length-2}</span>`:p.dests.map(x=>esc(x.name)).join(' → ');
  $('#hNext').textContent=de0<0?`Ended ${-de0} day${de0===-1?'':'s'} ago`:ds0<=0?`Trip in progress \u00b7 day ${1-ds0} of ${diff(p.start,p.end)+1}`:ds0===1?'Trip starts tomorrow':`${nu&&nu.id===p.id?'Next trip':'Trip'} in ${ds0} days`;
  $('#hero').innerHTML=`<svg viewBox="0 0 380 230" preserveAspectRatio="xMidYMid slice" aria-hidden="true">${sceneX(hd.sc)}</svg><div class="hbar${p.dests.length>3?' has-dest-count':''}"><div class="hn"><button data-hp="-1" aria-label="Previous plan">\u2039</button><span>${pi+1} / ${sp.length}</span><button data-hp="1" aria-label="Next plan">\u203a</button></div><div class="hd">${heroDestControls}</div></div><div class="hp"><h1>${esc(p.name)}</h1><p class="hero-route">${fm(p.start)} \u2013 ${fm(p.end)} \u00b7 ${heroRoute}</p>${p.sync?`<p class="syncp">${IC.cloud} ${esc(syncLabel(p))}</p>`:''}<div class="meter"><i style="width:${all.length?dn/all.length*100:0}%"></i></div><small>${dn} of ${all.length} stops done</small><br><button class="btn" data-go="plan">Open plan</button></div>`;
@@ -1402,7 +1432,7 @@ function renderPlan(){
  $('#days').innerHTML=ds.map((x,i)=>`<span class="xw"><button class="day" role="tab" aria-selected="${i===U.day}" data-day="${i}"><b>${esc(dayL(d,i))}</b><span>${fm(x)}</span></button>${xb('y:'+i,'Delete '+dayL(d,i))}</span>`).join('');
  const st=daySt(d,U.day);if(U.sel>=st.length)U.sel=0;
  $$('[data-view]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.view===U.view));
- $('#jr').innerHTML=U.view==='journey'?journey(st):'';
+ $('#jr').classList.toggle('journey-mode',U.view==='journey');$('#jr').innerHTML=U.view==='journey'?journey(st):'';
  const lbl=dayL(d,U.day);$('#sh').innerHTML=`<div class="shead"><div><b>${esc(lbl)}</b><span>${fm(ds[U.day])} \u00b7 ${st.length} stop${st.length===1?'':'s'}</span></div><button class="mini" data-act="stop">${IC.plus} Add stop</button></div>`;$('#tl').innerHTML=listHTML(st,lbl);$('#extras').innerHTML=extras(p);
  const s=st[U.sel],b=$('#bdone');if(b)b.setAttribute('aria-pressed',!!(s&&s.done));
  save()}
@@ -1503,7 +1533,7 @@ function openStop(o){
  o=o||{};const ed=o.sid?findStop(o.sid):null,p0=ed?ed.p:P.find(p=>p.id===(o.pid||U.pid))||cp(),d0=ed?ed.d:(p0.id===U.pid?cd():p0.dests[0]);
  const s=ed?ed.s:{name:o.name||'',time:'09:00',date:dd(d0)[p0.id===U.pid&&d0.id===cd().id?U.day:0]||d0.days[0],color:'',bg:'',tm:0,km:0,note:'',img:'',link:'',ll:''};IMG=s.img||'';
  modal(ed?'Edit stop':'New stop',(ed?'':F('Plan',planSel('fp',p0.id))+F('Destination',sel('fd',p0.dests.map(d=>[d.id,d.name]),d0.id)))
- +`<div class="two">${F('Date',`<input id="fdate" type="date" value="${s.date}" aria-label="Date">`)}${F('Time',`<input id="ftime" type="time" value="${s.time}" aria-label="Time">`)}</div>`
+ +`<div class="two stop-date-time"><div class="f"><span class="fk">Date</span><div class="picker-shell"><input id="fdate" type="date" value="${s.date}" aria-label="Date"><span class="picker-chevron" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span></div></div><div class="f"><span class="fk">Time</span><div class="picker-shell"><input id="ftime" type="time" value="${s.time}" aria-label="Time"><span class="picker-chevron" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span></div></div></div>`
  +F('Stop name',`<input id="fname" value="${esc(s.name)}" placeholder="e.g. Son Tra peninsula" aria-label="Stop name">`)
  +`<div class="two">${F('Title colour',swatches('tc',TXT,s.color,1))}${F('Background',swatches('bg',BGS,s.bg,1))}</div>`
  +`<div class="two">${F('To next stop (min)',`<input id="ftm" type="number" min="0" value="${s.tm||''}" aria-label="Minutes to next stop">`)}${F('To next stop (km)',`<input id="fkm" type="number" min="0" step="0.1" value="${s.km||''}" aria-label="Kilometres to next stop">`)}</div>`
